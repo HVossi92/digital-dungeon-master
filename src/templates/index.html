@@ -5,307 +5,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digital Dungeon Master</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+    <script src="/static/htmx.min.js"></script>
+    <link href="/static/app.css" rel="stylesheet">
+    <link href="/static/bootstrap.min.css" rel="stylesheet">
+    <script src="/static/bootstrap.bundle.min.js"></script>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --bg-dark: #1a1a1a;
-            --bg-panel: #2a2a2a;
-            --accent-gold: #c9a66b;
-            --accent-red: #8a2a2a;
-            --text-light: #e0e0e0;
-            --border-ornate: #8a6d3b;
-        }
-
         body {
             background-color: var(--bg-dark);
             color: var(--text-light);
             font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
             height: 100vh;
             overflow: hidden;
-        }
-
-        .game-container {
-            height: 100vh;
-            padding: 10px;
-        }
-
-        .panel {
-            background-color: var(--bg-panel);
-            border: 2px solid var(--border-ornate);
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .panel::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
-        }
-
-        .panel-header {
-            background-color: rgba(42, 28, 23, 0.8);
-            color: var(--accent-gold);
-            padding: 5px 10px;
-            font-weight: bold;
-            text-align: center;
-            border-bottom: 1px solid var(--border-ornate);
-        }
-
-        .scene-panel {
-            height: 30vh;
-            background-size: cover;
-            background-position: center;
-            position: relative;
-        }
-
-        .scene-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 5px 10px;
-            font-style: italic;
-        }
-
-        .character-panel,
-        .enemy-panel {
-            height: 68vh;
-        }
-
-        .chat-panel {
-            height: 68vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chat-messages {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 10px;
-            background: rgba(26, 26, 26, 0.7);
-        }
-
-        .chat-input {
-            padding: 10px;
-            background: rgba(42, 28, 23, 0.8);
-            border-top: 1px solid var(--border-ornate);
-        }
-
-        .message {
-            margin-bottom: 10px;
-            padding: 8px 12px;
-            border-radius: 5px;
-            max-width: 80%;
-        }
-
-        .message-dm {
-            background-color: rgba(138, 42, 42, 0.3);
-            border-left: 3px solid var(--accent-red);
-            align-self: flex-start;
-        }
-
-        .message-player {
-            background-color: rgba(42, 42, 138, 0.3);
-            border-left: 3px solid #2a2a8a;
-            align-self: flex-end;
-            margin-left: auto;
-        }
-
-        .character-image,
-        .enemy-image {
-            height: 200px;
-            background-size: cover;
-            background-position: center;
-            border-bottom: 1px solid var(--border-ornate);
-        }
-
-        .character-stats,
-        .enemy-stats {
-            padding: 10px;
-        }
-
-        .stat-bar {
-            height: 15px;
-            margin-bottom: 10px;
-            border-radius: 7px;
-            overflow: hidden;
-            background-color: #444;
-        }
-
-        .stat-fill {
-            height: 100%;
-            border-radius: 7px;
-        }
-
-        .health-fill {
-            background: linear-gradient(90deg, #8a2a2a, #c83232);
-        }
-
-        .mana-fill {
-            background: linear-gradient(90deg, #2a2a8a, #3232c8);
-        }
-
-        .stamina-fill {
-            background: linear-gradient(90deg, #8a8a2a, #c8c832);
-        }
-
-        .stat-value {
-            font-size: 0.8rem;
-            text-align: right;
-            margin-top: -25px;
-            padding-right: 5px;
-            color: white;
-            text-shadow: 1px 1px 1px black;
-        }
-
-        .abilities {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            margin-top: 15px;
-        }
-
-        .ability-btn {
-            background-color: rgba(42, 28, 23, 0.8);
-            border: 1px solid var(--accent-gold);
-            color: var(--accent-gold);
-            padding: 5px 10px;
-            border-radius: 3px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .ability-btn:hover {
-            background-color: var(--accent-gold);
-            color: #2a1c17;
-        }
-
-        .inventory-section,
-        .effects-section {
-            margin-top: 15px;
-            border-top: 1px solid rgba(138, 109, 59, 0.5);
-            padding-top: 10px;
-        }
-
-        .inventory-item,
-        .status-effect {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            background-color: rgba(42, 28, 23, 0.8);
-            border: 1px solid var(--accent-gold);
-            border-radius: 3px;
-            margin: 2px;
-            position: relative;
-            cursor: pointer;
-        }
-
-        .item-icon,
-        .effect-icon {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-            color: var(--accent-gold);
-        }
-
-        .dice-section {
-            margin-top: 10px;
-            text-align: center;
-        }
-
-        .dice {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            background-color: rgba(42, 28, 23, 0.8);
-            border: 1px solid var(--accent-gold);
-            border-radius: 5px;
-            margin: 0 5px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            color: var(--accent-gold);
-            cursor: pointer;
-        }
-
-        .dice:hover {
-            background-color: var(--accent-gold);
-            color: #2a1c17;
-        }
-
-        .game-controls {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 100;
-        }
-
-        .control-btn {
-            background-color: rgba(42, 28, 23, 0.8);
-            border: 1px solid var(--accent-gold);
-            color: var(--accent-gold);
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            margin-left: 5px;
-            cursor: pointer;
-        }
-
-        .control-btn:hover {
-            background-color: var(--accent-gold);
-            color: #2a1c17;
-        }
-
-        /* Ornate corners for panels */
-        .panel::after {
-            content: "";
-            position: absolute;
-            width: 15px;
-            height: 15px;
-            border: 2px solid var(--accent-gold);
-            border-radius: 0;
-        }
-
-        .panel-corner-tl::after {
-            top: -2px;
-            left: -2px;
-            border-right: none;
-            border-bottom: none;
-        }
-
-        .panel-corner-tr::after {
-            top: -2px;
-            right: -2px;
-            border-left: none;
-            border-bottom: none;
-        }
-
-        .panel-corner-bl::after {
-            bottom: -2px;
-            left: -2px;
-            border-right: none;
-            border-top: none;
-        }
-
-        .panel-corner-br::after {
-            bottom: -2px;
-            right: -2px;
-            border-left: none;
-            border-top: none;
         }
     </style>
 </head>
@@ -531,7 +243,6 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Auto-scroll chat to bottom
         function scrollChatToBottom() {
@@ -548,17 +259,6 @@
         document.body.addEventListener('htmx:afterSwap', function (event) {
             if (event.detail.target.id === 'chat-messages') {
                 scrollChatToBottom();
-            }
-        });
-
-        // Dice rolling animation
-        document.addEventListener('click', function (event) {
-            if (event.target.closest('.dice')) {
-                const dice = event.target.closest('.dice');
-                dice.classList.add('animate-dice');
-                setTimeout(() => {
-                    dice.classList.remove('animate-dice');
-                }, 500);
             }
         });
     </script>
