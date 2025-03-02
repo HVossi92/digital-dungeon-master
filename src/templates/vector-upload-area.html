@@ -1,0 +1,30 @@
+<div class="card" style="background-color: var(--chat-bg); border: 1px solid var(--message-border);">
+    <div class="card-body row">
+        <h5 class="card-title mb-4" style="color: var(--body-color);">Vector database upload area</h5>
+
+        <form hx-post="/vector" enctype="multipart/form-data" hx-target="#chat-messages" class="mb-4"
+            hx-swap="beforeend" hx-indicator="#upload-spinner" hx-disabled-elt="#upload-disable">
+            <div class="mb-3">
+                <label for="image-upload" class="form-label" style="color: var(--body-color);">
+                    Upload data to add to the vector database
+                </label>
+                <textarea class="form-control form-control-lg" type="text" name="vectors" id="vector-upload"
+                    placeholder="Paste your data here">
+                </textarea>
+                <div class="form-text" style="color: var(--body-color);">
+                </div>
+            </div>
+            <button id="upload-disable" type="submit" class="btn btn-primary">
+                <i class="bi bi-cloud-upload me-2"></i>Upload data
+            </button>
+            <span id="upload-spinner" class="spinner-border spinner-border-sm htmx-indicator" role="status"
+                aria-hidden="true"></span>
+            <button hx-get="/vector" type="button" class="btn btn-info" hx-indicator="#read-vectors-spinner"
+                hx-disabled-elt="this">
+                <i class="bi bi-cloud-upload me-2"></i>Read vectors
+            </button>
+            <span id="read-vectors-spinner" class="spinner-border htmx-indicator spinner-border-sm" role="status"
+                aria-hidden="true"></span>
+        </form>
+    </div>
+</div>
