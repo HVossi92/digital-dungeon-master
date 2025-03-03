@@ -15,10 +15,10 @@ import (
 )
 
 //go:embed templates
-var templatesFS embed.FS
+var templatesFs embed.FS
 
 //go:embed static
-var staticFS embed.FS
+var staticFs embed.FS
 
 // Server struct to hold all services and templates
 type Server struct {
@@ -31,7 +31,7 @@ type Server struct {
 // NewServer initializes and returns a new Server instance with all services set up.
 func NewServer() (*Server, error) {
 	// Parse templates
-	templates, err := template.ParseFS(templatesFS,
+	templates, err := template.ParseFS(templatesFs,
 		"templates/*.html",
 		"templates/**/*.html",
 	)
@@ -40,12 +40,12 @@ func NewServer() (*Server, error) {
 	}
 
 	// Create sub filesystem for static assets
-	staticSubFS, err := fs.Sub(staticFS, "static")
+	staticSubFS, err := fs.Sub(staticFs, "static")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create sub filesystem: %w", err)
 	}
 
-	vectorDB, err := services.SetUDatabaseService("database.db", false)
+	vectorDB, err := services.SetUpDatabaseService("database.db", false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to set up VectorDB service: %w", err)
 	}
@@ -53,7 +53,7 @@ func NewServer() (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get settings: %w", err)
 	}
-	ollamaService := services.SetUpOllamaService(settings.URL, settings.LLM, settings.Embedding)
+	ollamaService := services.SetUpOllamaService(settings.URL, settings.LLM, settings.Embedding, staticFs)
 
 	return &Server{
 		templates:     templates,
@@ -119,11 +119,10 @@ func (s *Server) fetchIndexPage(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) fetchAiResponse(w http.ResponseWriter, r *http.Request) {
 	message := r.FormValue("message")
-	doUseRag := r.URL.Query().Get("use-rag") == "true"
 
 	var err error
 	fmt.Println("Asking LLM")
-	aiResponse, err := s.ollamaService.AskLLM(message, doUseRag, s.vectorDB)
+	aiResponse, err := s.ollamaService.AskLLM(message, s.vectorDB)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		panic(err)

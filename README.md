@@ -4,6 +4,8 @@ Digital Dungeon Master - DDM - is an Ai driven role playing game
 
 ## Todos:
 
+- Try out sqlx
+- HTMX scroll to last chat message
 - Setup database
   - Vector table for game rules
   - Settings table

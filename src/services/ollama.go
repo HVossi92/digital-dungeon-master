@@ -1,7 +1,9 @@
 package services
 
 import (
+	"embed"
 	"fmt"
+	"io/fs"
 	"strings"
 
 	"github.com/hvossi92/gollama/src/utils"
@@ -12,6 +14,7 @@ type OllamaService struct {
 	embeddingEndpoint string
 	llm               string
 	embeddingModel    string
+	systemPrompt      string
 }
 
 // ChatRequest struct to structure the request body
@@ -65,82 +68,54 @@ type Point struct {
 }
 
 // SetUpVectorDBService creates and initializes a new VectorDBService.
-func SetUpOllamaService(url string, llm string, embedding string) *OllamaService {
-	return &OllamaService{chatEndpoint: url + "/api/chat", embeddingEndpoint: url + "/api/embed", llm: llm, embeddingModel: embedding}
+func SetUpOllamaService(url string, llm string, embedding string, staticFs embed.FS) *OllamaService {
+	filename := "static/systemPrompt.txt" // Replace with your text file name
+	content, err := fs.ReadFile(staticFs, filename)
+	if err != nil {
+		panic(err)
+	}
+
+	return &OllamaService{chatEndpoint: url + "/api/chat", embeddingEndpoint: url + "/api/embed", llm: llm, embeddingModel: embedding, systemPrompt: string(content)}
 }
 
-var questionSystemPrompt = `
-You are a helpful assistant with access to a knowlege base, tasked with answering questions about general knowledge, but also specific to the provided knowledge base.
-
-Answer the question in a very concise manner. Use an unbiased and journalistic tone. Do not repeat text. Don't make anything up. If you are not sure about something, just say that you don't know.
-{{- /* Stop here if no context is provided. The rest below is for handling contexts. */ -}}
-{{- if . -}}
-If possible, answer the question solely based on the provided search results from the knowledge base. If the search results from the knowledge base are not relevant to the question at hand, try to answer the question based on general knowledge. But do not make anything up.
-
-Anything between the following 'context' XML blocks is retrieved from the knowledge base, not part of the conversation with the user. The bullet points are ordered by relevance, so the first one is the most relevant.
-
-<context>
-    {{- if . -}}
-    {{- range $context := .}}
-    - {{.}}{{end}}
-    {{- end}}
-</context>
-{{- end -}}
-
-Don't mention the knowledge base, context or search results in your answer.
-`
-
-func (s *OllamaService) AskLLM(question string, useVectorDb bool, vectorService *DatabaseService) (string, error) {
+func (s *OllamaService) AskLLM(question string, vectorService *DatabaseService) (string, error) {
 	var messages []ChatMessage
 
-	if useVectorDb {
-		// 1. Embed the question to find relevant chunks
-		questionEmbedding, err := s.GetVectorEmbedding(question)
-		if err != nil {
-			return "", fmt.Errorf("failed to embed question: %w", err)
-		}
+	// 1. Embed the question to find relevant chunks
+	questionEmbedding, err := s.GetVectorEmbedding(question)
+	if err != nil {
+		return "", fmt.Errorf("failed to embed question: %w", err)
+	}
 
-		// 2. Query vector DB to find similar chunks
-		similarItems, err := vectorService.FindSimilarVectors(questionEmbedding)
-		if err != nil {
-			return "", fmt.Errorf("failed to find similar vectors: %w", err)
-		}
+	// 2. Query vector DB to find similar chunks
+	similarItems, err := vectorService.FindSimilarVectors(questionEmbedding)
+	if err != nil {
+		return "", fmt.Errorf("failed to find similar vectors: %w", err)
+	}
 
-		// 3. Construct context from retrieved chunks
-		context := ""
-		if len(similarItems) > 0 {
-			contextBuilder := strings.Builder{}
-			contextBuilder.WriteString("Context:\n")
-			for _, item := range similarItems {
-				contextBuilder.WriteString(item.Text)
-				contextBuilder.WriteString("\n---\n") // Separator between chunks
-			}
-			context = contextBuilder.String()
-		} else {
-			context = "No relevant context found in the database.\n"
+	// 3. Construct context from retrieved chunks
+	context := ""
+	if len(similarItems) > 0 {
+		contextBuilder := strings.Builder{}
+		contextBuilder.WriteString("Context:\n")
+		for _, item := range similarItems {
+			contextBuilder.WriteString(item.Text)
+			contextBuilder.WriteString("\n---\n") // Separator between chunks
 		}
-
-		// 4. Create prompt with context and question
-		messages = []ChatMessage{
-			{
-				Role:    "system",
-				Content: questionSystemPrompt,
-			}, {
-				Role:    "user",
-				Content: "<context>" + context + "</context>" + "\nQuestion: " + question, // Combine context and question
-			},
-		}
+		context = contextBuilder.String()
 	} else {
-		// 5. If not using vector DB, use a simple prompt with just the question
-		messages = []ChatMessage{
-			{
-				Role:    "system",
-				Content: questionSystemPrompt,
-			}, {
-				Role:    "user",
-				Content: "Question: " + question,
-			},
-		}
+		context = "No relevant context found in the database.\n"
+	}
+
+	// 4. Create prompt with context and question
+	messages = []ChatMessage{
+		{
+			Role:    "system",
+			Content: s.systemPrompt,
+		}, {
+			Role:    "user",
+			Content: "<context>" + context + "</context>" + "\nQuestion: " + question, // Combine context and question
+		},
 	}
 
 	// 6. Make the Chat Request to Ollama

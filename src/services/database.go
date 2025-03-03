@@ -28,8 +28,8 @@ type Settings struct {
 	Embedding string
 }
 
-// SetUDatabaseService creates and initializes a new VectorDBService.
-func SetUDatabaseService(dbPath string, overwrite bool) (*DatabaseService, error) {
+// SetUpDatabaseService creates and initializes a new VectorDBService.
+func SetUpDatabaseService(dbPath string, overwrite bool) (*DatabaseService, error) {
 	if overwrite {
 		log.Println("Overwriting existing database (if it exists)")
 		if err := os.Remove(dbPath); err != nil && !errors.Is(err, os.ErrNotExist) {
