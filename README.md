@@ -8,7 +8,6 @@ Digital Dungeon Master - DDM - is an Ai driven role playing game
   - Vector table for game rules
   - Settings table
   - Game chat (save every user request & ai response in plain text)
-- Checkout https://docs.turso.tech/features/ai-and-embeddings#how-it-works for vector improvements
 - How is character data handled?
 - Setup endpoint to retrieve character and location data
 - Setup endpoint to retrieve character and location images

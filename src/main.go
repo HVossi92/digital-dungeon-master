@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/hvossi92/gollama/src/helpers"
 	"github.com/hvossi92/gollama/src/services"
 )
 
@@ -23,7 +24,7 @@ var staticFS embed.FS
 type Server struct {
 	templates     *template.Template
 	staticSubFS   fs.FS
-	vectorDB      *services.VectorService
+	vectorDB      *services.DatabaseService
 	ollamaService *services.OllamaService
 }
 
@@ -44,7 +45,7 @@ func NewServer() (*Server, error) {
 		return nil, fmt.Errorf("failed to create sub filesystem: %w", err)
 	}
 
-	vectorDB, err := services.SetUDatabaseService("gollama.db", false)
+	vectorDB, err := services.SetUDatabaseService("database.db", false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to set up VectorDB service: %w", err)
 	}
@@ -167,8 +168,7 @@ func (s *Server) UploadVector(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "No data was provided", http.StatusBadRequest)
 		return
 	}
-
-	chunkedText, err := s.vectorDB.ChunkText(strings.TrimSpace(text), 16, 4) // Chunk text first
+	chunkedText, err := helpers.ChunkText(strings.TrimSpace(text), 16, 4) // Chunk text first
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -183,7 +183,7 @@ func (s *Server) UploadVector(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err = s.vectorDB.StoreChunkAndEmbedding(chunk, embeddings) // Store chunk and embedding in DB
+		err = s.vectorDB.InsertChunkAndEmbedding(chunk, embeddings) // Store chunk and embedding in DB
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
