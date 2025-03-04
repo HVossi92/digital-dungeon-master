@@ -4,8 +4,6 @@ Digital Dungeon Master - DDM - is an Ai driven role playing game
 
 ## Todos:
 
-- Try out sqlx
-- HTMX scroll to last chat message
 - Setup database
   - Vector table for game rules
   - Settings table
@@ -20,6 +18,7 @@ Digital Dungeon Master - DDM - is an Ai driven role playing game
 - Aside from the plain text LLM response, how to read out specific location and enemey data, that needs to be displayed in the game?
 - How to handle health, mana, stamina and / or other stats?
 - Create llamafiles and embed or at least include and automatically start
+- HTMX scroll to last chat message
 
 - Idea:
   <history>the chat up until here</history>

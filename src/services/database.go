@@ -1,7 +1,6 @@
 package services
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -9,15 +8,17 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jmoiron/sqlx"
 	_ "github.com/tursodatabase/go-libsql"
 )
 
 // DatabaseService represents the service responsible for the vector database.
 type DatabaseService struct {
-	db *sql.DB
+	db *sqlx.DB
 }
 
 type VectorItem struct {
+	Id        int
 	Text      string
 	Embedding []byte
 }
@@ -38,25 +39,25 @@ func SetUpDatabaseService(dbPath string, overwrite bool) (*DatabaseService, erro
 	}
 
 	// Create VectorService instance first
-	vectorService := &DatabaseService{db: nil}
-	db, err := vectorService.createDb(dbPath)
+	databaseService := &DatabaseService{db: nil}
+	db, err := databaseService.createDb(dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create database: %w", err)
 	}
-	vectorService.db = db
+	databaseService.db = db
 
 	// Then call ensureVectorTableExists on the instance
-	if err := vectorService.createRulesVectorTable(); err != nil {
+	if err := databaseService.createRulesVectorTable(); err != nil {
 		db.Close() // Close the connection if table creation fails
 		return nil, fmt.Errorf("failed to ensure vector table exists: %w", err)
 	}
 
-	if err := vectorService.createSettingsTable(); err != nil {
+	if err := databaseService.createSettingsTable(); err != nil {
 		db.Close() // Close the connection if table creation fails
 		return nil, fmt.Errorf("failed to ensure settings table exists: %w", err)
 	}
 
-	return vectorService, nil
+	return databaseService, nil
 }
 
 // Close closes the database connection.  Good practice to add a Close method.
@@ -67,9 +68,9 @@ func (s *DatabaseService) Close() error {
 	return nil
 }
 
-func (s *DatabaseService) createDb(dbPath string) (*sql.DB, error) {
+func (s *DatabaseService) createDb(dbPath string) (*sqlx.DB, error) {
 	// Connect to embedded libSQL
-	db, err := sql.Open("libsql", "file:"+dbPath)
+	db, err := sqlx.Open("libsql", "file:"+dbPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -96,19 +97,16 @@ func (s *DatabaseService) createRulesVectorTable() error {
 
 func (s *DatabaseService) createSettingsTable() error {
 	// Create table if not exists
-	_, err := s.db.Exec(`CREATE TABLE IF NOT EXISTS settings (
+	s.db.MustExec(`CREATE TABLE IF NOT EXISTS settings (
 		id INTEGER PRIMARY KEY, 
 		url TEXT, 
 		llm TEXT, 
 		embedding_model TEXT
 	) STRICT`)
-	if err != nil {
-		return fmt.Errorf("failed to create settings table: %w", err)
-	}
 
 	// Check if table is empty
 	var count int
-	err = s.db.QueryRow("SELECT COUNT(*) FROM settings").Scan(&count)
+	err := s.db.Get(&count, "SELECT COUNT(*) FROM settings")
 	if err != nil {
 		return fmt.Errorf("failed to check settings table: %w", err)
 	}
@@ -155,42 +153,24 @@ func (s *DatabaseService) InsertChunkAndEmbedding(chunk string, embedding []floa
 
 // ReadAllVectors reads all data from the vector DB table.
 func (s *DatabaseService) ReadAllVectors() (string, error) {
-	var builder strings.Builder
+	var vectorItems []VectorItem
 
-	rows, err := s.db.Query(`
+	err := s.db.Select(&vectorItems, `
 		SELECT id, text, vector_extract(embedding) 
 		FROM rules
 		ORDER BY id ASC`)
 	if err != nil {
 		return "", fmt.Errorf("query failed: %w", err)
 	}
-	defer rows.Close()
 
-	var (
-		id        int
-		text      string
-		embedding string
-	)
-
-	for rows.Next() {
-		err := rows.Scan(&id, &text, &embedding)
-		if err != nil {
-			return builder.String(), fmt.Errorf("scan failed: %w", err)
+	var builder strings.Builder
+	for _, vec := range vectorItems {
+		display := vec.Text
+		if len(vec.Text) > 40 {
+			display = vec.Text[:40-3] + "..."
 		}
-
-		// Truncate fields
-		displayText := text
-		if len(text) > 40 {
-			displayText = text[:40-3] + "..."
-		}
-
-		builder.WriteString(fmt.Sprintf("%-4d - %-40s | ", id, displayText))
+		builder.WriteString(fmt.Sprintf("%-4d - %-40s | ", vec.Id, display))
 	}
-
-	if err := rows.Err(); err != nil {
-		return builder.String(), fmt.Errorf("row iteration error: %w", err)
-	}
-
 	return builder.String(), nil
 }
 
@@ -207,7 +187,9 @@ func (s *DatabaseService) FindSimilarVectors(queryEmbedding []float32) ([]Vector
 	sb.WriteByte(']')
 	vectorStr := sb.String()
 
-	rows, err := s.db.Query(
+	var similarItems []VectorItem
+	// TODO: Might need a distance field in the struct, or alternatively do not return the distance and only use it for ordering (since atm I only use it inside the db)
+	err := s.db.Select(&similarItems,
 		`SELECT text, vector_extract(embedding), vector_distance_cos(embedding, vector32(?))
 		FROM vectors
 		ORDER BY vector_distance_cos(embedding, vector32(?))
@@ -216,43 +198,12 @@ func (s *DatabaseService) FindSimilarVectors(queryEmbedding []float32) ([]Vector
 		return nil, err
 	}
 
-	defer rows.Close()
-
-	// Iterate through results
-	var (
-		text      string
-		embedding string
-		distance  float64
-	)
-
-	var similarItems []VectorItem
-	for rows.Next() {
-		err := rows.Scan(&text, &embedding, &distance)
-		if err != nil {
-			return nil, err
-		}
-
-		// Format the output
-		fmt.Printf("%-20s | %.4f\n",
-			text,
-			distance)
-		item := VectorItem{
-			Text:      text,
-			Embedding: []byte(embedding),
-		}
-		similarItems = append(similarItems, item)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-
 	return similarItems, nil
 }
 
 func (s *DatabaseService) GetSettings() (*Settings, error) {
 	var settings Settings
-	err := s.db.QueryRow("SELECT url, llm, embedding_model FROM settings").Scan(&settings.URL, &settings.LLM, &settings.Embedding)
+	err := s.db.Get(&settings, "SELECT url, llm, embedding_model FROM settings")
 	if err != nil {
 		return nil, err
 	}
