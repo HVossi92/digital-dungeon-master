@@ -18,15 +18,16 @@ type DatabaseService struct {
 }
 
 type VectorItem struct {
-	Id        int
-	Text      string
-	Embedding []byte
+	Id        int     `db:"id"`
+	Text      string  `db:"text"`
+	Embedding []byte  `db:"vector_extract(embedding)"`
+	Distance  float32 `db:"distance"`
 }
 
 type Settings struct {
-	URL       string
-	LLM       string
-	Embedding string
+	URL       string `db:"url"`
+	LLM       string `db:"llm"`
+	Embedding string `db:"embedding_model"`
 }
 
 // SetUpDatabaseService creates and initializes a new VectorDBService.
@@ -55,6 +56,11 @@ func SetUpDatabaseService(dbPath string, overwrite bool) (*DatabaseService, erro
 	if err := databaseService.createSettingsTable(); err != nil {
 		db.Close() // Close the connection if table creation fails
 		return nil, fmt.Errorf("failed to ensure settings table exists: %w", err)
+	}
+
+	if err := databaseService.createChatMessageTable(); err != nil {
+		db.Close() // Close the connection if table creation fails
+		return nil, fmt.Errorf("failed to ensure chat messages table exists: %w", err)
 	}
 
 	return databaseService, nil
@@ -126,6 +132,18 @@ func (s *DatabaseService) createSettingsTable() error {
 	return nil
 }
 
+func (s *DatabaseService) createChatMessageTable() error {
+	// Create table if not exists
+	s.db.MustExec(`CREATE TABLE IF NOT EXISTS chat_messages (
+		id INTEGER PRIMARY KEY, 
+		role TEXT, 
+		content TEXT, 
+		created TEXT DEFAULT CURRENT_TIMESTAMP
+	) STRICT`)
+
+	return nil
+}
+
 // InsertChunkAndEmbedding saves a text chunk and its embedding to the SQLite vector database.
 func (s *DatabaseService) InsertChunkAndEmbedding(chunk string, embedding []float32) error {
 	var sb strings.Builder
@@ -190,10 +208,10 @@ func (s *DatabaseService) FindSimilarVectors(queryEmbedding []float32) ([]Vector
 	var similarItems []VectorItem
 	// TODO: Might need a distance field in the struct, or alternatively do not return the distance and only use it for ordering (since atm I only use it inside the db)
 	err := s.db.Select(&similarItems,
-		`SELECT text, vector_extract(embedding), vector_distance_cos(embedding, vector32(?))
-		FROM vectors
+		`SELECT text, vector_extract(embedding), vector_distance_cos(embedding, vector32(?)) AS distance
+		FROM rules
 		ORDER BY vector_distance_cos(embedding, vector32(?))
-		ASC LIMIT 3;`, vectorStr, vectorStr)
+		ASC LIMIT 32;`, vectorStr, vectorStr)
 	if err != nil {
 		return nil, err
 	}

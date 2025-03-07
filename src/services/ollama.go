@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"strings"
 
+	"github.com/hvossi92/gollama/src/helpers"
 	"github.com/hvossi92/gollama/src/utils"
 )
 
@@ -30,22 +31,17 @@ type ChatMessage struct {
 }
 
 type ChatResponse struct { // New struct for /api/chat response
-	Model              string              `json:"model"`
-	CreatedAt          string              `json:"created_at"`
-	Message            ChatMessageResponse `json:"message"` // <--- Changed to ChatMessageResponse struct
-	DoneReason         string              `json:"done_reason"`
-	Done               bool                `json:"done"`
-	TotalDuration      int64               `json:"total_duration"`
-	LoadDuration       int64               `json:"load_duration"`
-	PromptEvalCount    int                 `json:"prompt_eval_count"`
-	PromptEvalDuration int64               `json:"prompt_eval_duration"`
-	EvalCount          int                 `json:"eval_count"`
-	EvalDuration       int64               `json:"eval_duration"`
-}
-
-type ChatMessageResponse struct { // Struct for the nested "message" object
-	Role    string `json:"role"`
-	Content string `json:"content"` // <--- The text response is here
+	Model              string      `json:"model"`
+	CreatedAt          string      `json:"created_at"`
+	Message            ChatMessage `json:"message"` // <--- Changed to ChatMessageResponse struct
+	DoneReason         string      `json:"done_reason"`
+	Done               bool        `json:"done"`
+	TotalDuration      int64       `json:"total_duration"`
+	LoadDuration       int64       `json:"load_duration"`
+	PromptEvalCount    int         `json:"prompt_eval_count"`
+	PromptEvalDuration int64       `json:"prompt_eval_duration"`
+	EvalCount          int         `json:"eval_count"`
+	EvalDuration       int64       `json:"eval_duration"`
 }
 
 type EmbeddingRequest struct {
@@ -97,24 +93,28 @@ func (s *OllamaService) AskLLM(question string, vectorService *DatabaseService) 
 	context := ""
 	if len(similarItems) > 0 {
 		contextBuilder := strings.Builder{}
-		contextBuilder.WriteString("Context:\n")
+		contextBuilder.WriteString("D&D Rule References:\n")
 		for _, item := range similarItems {
-			contextBuilder.WriteString(item.Text)
-			contextBuilder.WriteString("\n---\n") // Separator between chunks
+			contextBuilder.WriteString(fmt.Sprintf("- %s\n", item.Text))
 		}
 		context = contextBuilder.String()
 	} else {
 		context = "No relevant context found in the database.\n"
 	}
 
+	// fmt.Println(context)
 	// 4. Create prompt with context and question
 	messages = []ChatMessage{
 		{
 			Role:    "system",
 			Content: s.systemPrompt,
 		}, {
-			Role:    "user",
-			Content: "<context>" + context + "</context>" + "\nQuestion: " + question, // Combine context and question
+			Role: "user",
+			Content: fmt.Sprintf(
+				"Rules Reference:\n%s\nPlayer Action: %s\nDM Response:",
+				context,
+				question,
+			),
 		},
 	}
 
@@ -124,13 +124,17 @@ func (s *OllamaService) AskLLM(question string, vectorService *DatabaseService) 
 		Messages: messages,
 		Stream:   false,
 	}
+	fmt.Println("Sending request to ollama")
 	chatResponse, err := utils.SendPostRequest[ChatRequest, ChatResponse](s.chatEndpoint, request) // Use ChatRequest and ChatResponse
 	if err != nil {
 		fmt.Println(err.Error())
 		return "", err
 	}
+	fmt.Println("Received response from ollama")
 
-	return chatResponse.Message.Content, nil // Return response from LLM
+	responseTxt := helpers.StripLAiResponse(chatResponse.Message.Content)
+
+	return responseTxt, nil // Return response from LLM
 }
 
 func (s *OllamaService) GetVectorEmbedding(text string) ([]float32, error) {
