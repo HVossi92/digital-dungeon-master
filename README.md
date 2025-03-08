@@ -4,6 +4,9 @@ Digital Dungeon Master - DDM - is an Ai driven role playing game
 
 ## Todos:
 
+- Move vector db upload into settings page
+- Create settings page
+- Get current token use / total tokens
 - Chain messages to keep context
 - Setup LLM communication, teach it to be a GM, add RAG context
 - Upload PDF (maybe use LLM to read it?)
@@ -19,6 +22,10 @@ Digital Dungeon Master - DDM - is an Ai driven role playing game
 - HTMX scroll to last chat message
 - Create game art
 - Incorporate game art
+- Model Ideas: https://www.reddit.com/r/LocalLLaMA/comments/1ge19ps/llm_model_for_dnd/
+- Model Ideas: https://www.drivethrurpg.com/en/product/494922/oracle-ai-roleplaying-guide
+- Get a good comfy Ui setup and use it directly with flux (without comfyui)
+- Dockerize flux
 
 - Idea:
   <history>the chat up until here</history>

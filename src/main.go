@@ -131,7 +131,6 @@ func (s *Server) fetchAiResponse(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		panic(err)
 	}
-	fmt.Printf("AI Response: %s", aiResponse)
 
 	data := struct {
 		UserMessage string

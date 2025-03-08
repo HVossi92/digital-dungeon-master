@@ -4,7 +4,6 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
-	"strings"
 
 	"github.com/hvossi92/gollama/src/helpers"
 	"github.com/hvossi92/gollama/src/utils"
@@ -16,6 +15,7 @@ type OllamaService struct {
 	llm               string
 	embeddingModel    string
 	systemPrompt      string
+	messages          []ChatMessage
 }
 
 // ChatRequest struct to structure the request body
@@ -75,53 +75,50 @@ func SetUpOllamaService(url string, llm string, embedding string, staticFs embed
 }
 
 func (s *OllamaService) AskLLM(question string, vectorService *DatabaseService) (string, error) {
-	var messages []ChatMessage
 
-	// 1. Embed the question to find relevant chunks
-	questionEmbedding, err := s.GetVectorEmbedding(question)
-	if err != nil {
-		return "", fmt.Errorf("failed to embed question: %w", err)
-	}
+	// questionEmbedding, err := s.GetVectorEmbedding(question)
+	// if err != nil {
+	// 	return "", fmt.Errorf("failed to embed question: %w", err)
+	// }
 
-	// 2. Query vector DB to find similar chunks
-	similarItems, err := vectorService.FindSimilarVectors(questionEmbedding)
-	if err != nil {
-		return "", fmt.Errorf("failed to find similar vectors: %w", err)
-	}
+	// similarItems, err := vectorService.FindSimilarVectors(questionEmbedding)
+	// if err != nil {
+	// 	return "", fmt.Errorf("failed to find similar vectors: %w", err)
+	// }
 
-	// 3. Construct context from retrieved chunks
-	context := ""
-	if len(similarItems) > 0 {
-		contextBuilder := strings.Builder{}
-		contextBuilder.WriteString("D&D Rule References:\n")
-		for _, item := range similarItems {
-			contextBuilder.WriteString(fmt.Sprintf("- %s\n", item.Text))
-		}
-		context = contextBuilder.String()
-	} else {
-		context = "No relevant context found in the database.\n"
-	}
+	// context := ""
+	// if len(similarItems) > 0 {
+	// 	contextBuilder := strings.Builder{}
+	// 	contextBuilder.WriteString("D&D Rule References:\n")
+	// 	for _, item := range similarItems {
+	// 		contextBuilder.WriteString(fmt.Sprintf("- %s\n", item.Text))
+	// 	}
+	// 	context = contextBuilder.String()
+	// } else {
+	// 	context = "No relevant context found in the database.\n"
+	// }
 
-	// fmt.Println(context)
-	// 4. Create prompt with context and question
-	messages = []ChatMessage{
-		{
-			Role:    "system",
-			Content: s.systemPrompt,
-		}, {
-			Role: "user",
-			Content: fmt.Sprintf(
-				"Rules Reference:\n%s\nPlayer Action: %s\nDM Response:",
-				context,
-				question,
-			),
-		},
+	// systemPromptMsg := ChatMessage{
+	// 	Role:    "system",
+	// 	Content: s.systemPrompt,
+	// }
+	// s.messages = append(s.messages, systemPromptMsg)
+
+	userMsg := ChatMessage{
+		Role: "user",
+		// Content: fmt.Sprintf(
+		// 	"Rules Reference:\n%s\nPlayer Action: %s\nDM Response:",
+		// 	context,
+		// 	question,
+		// ),
+		Content: question,
 	}
+	s.messages = append(s.messages, userMsg)
 
 	// 6. Make the Chat Request to Ollama
 	request := ChatRequest{ // Use ChatRequest struct
 		Model:    s.llm,
-		Messages: messages,
+		Messages: s.messages,
 		Stream:   false,
 	}
 	fmt.Println("Sending request to ollama")
@@ -130,10 +127,17 @@ func (s *OllamaService) AskLLM(question string, vectorService *DatabaseService) 
 		fmt.Println(err.Error())
 		return "", err
 	}
-	fmt.Println("Received response from ollama")
 
 	responseTxt := helpers.StripLAiResponse(chatResponse.Message.Content)
+	fmt.Println("Received response from ollama")
 
+	aiResponseMsg := ChatMessage{
+		Role:    "assistant",
+		Content: responseTxt,
+	}
+	s.messages = append(s.messages, aiResponseMsg)
+
+	fmt.Println("Messages:", s.messages)
 	return responseTxt, nil // Return response from LLM
 }
 
