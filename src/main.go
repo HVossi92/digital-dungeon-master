@@ -38,6 +38,10 @@ func NewServer() (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse templates: %w", err)
 	}
+	fmt.Println("Parsed Template Names:")
+	for _, tmpl := range templates.Templates() {
+		fmt.Println("-", tmpl.Name())
+	}
 
 	// Create sub filesystem for static assets
 	staticSubFS, err := fs.Sub(staticFs, "static")
