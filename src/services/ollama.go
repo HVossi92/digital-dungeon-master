@@ -98,11 +98,11 @@ func (s *OllamaService) AskLLM(question string, vectorService *DatabaseService) 
 	// 	context = "No relevant context found in the database.\n"
 	// }
 
-	// systemPromptMsg := ChatMessage{
-	// 	Role:    "system",
-	// 	Content: s.systemPrompt,
-	// }
-	// s.messages = append(s.messages, systemPromptMsg)
+	systemPromptMsg := ChatMessage{
+		Role:    "system",
+		Content: s.systemPrompt,
+	}
+	s.messages = append(s.messages, systemPromptMsg)
 
 	userMsg := ChatMessage{
 		Role: "user",
