@@ -80,6 +80,8 @@ func main() {
 	}
 
 	http.HandleFunc("/", server.fetchIndexPage)
+	http.HandleFunc("/settings", server.fetchSettingsPage)
+	http.HandleFunc("POST /settings", server.updateSettings)
 	http.HandleFunc("POST /chat", server.fetchAiResponse)
 	http.HandleFunc("GET /vector", server.GetVectors)
 	http.HandleFunc("POST /vector", server.UploadVector)
@@ -119,6 +121,27 @@ func (s *Server) fetchIndexPage(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error executing template: %v", err), http.StatusInternalServerError)
 	}
+}
+
+func (s *Server) fetchSettingsPage(w http.ResponseWriter, r *http.Request) {
+	err := s.templates.ExecuteTemplate(w, "settings.html", nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (s *Server) updateSettings(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Updating settings")
+	settings := struct {
+		URL       string
+		LLM       string
+		Embedding string
+	}{
+		URL:       r.FormValue("url"),
+		LLM:       r.FormValue("llm"),
+		Embedding: r.FormValue("embedding"),
+	}
+	fmt.Println(settings)
 }
 
 func (s *Server) fetchAiResponse(w http.ResponseWriter, r *http.Request) {

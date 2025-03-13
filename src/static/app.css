@@ -8,11 +8,11 @@
 }
 
 body {
-    background-color: var(--bg-dark);
-    color: var(--text-light);
-    font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
-    height: 100vh;
-    overflow: hidden;
+    background-color: var(--bg-dark) !important;
+    color: var(--text-light) !important;
+    font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif !important;
+    height: 100vh !important;
+    overflow: hidden !important;
 }
 
 .game-container {

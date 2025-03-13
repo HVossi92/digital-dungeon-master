@@ -8,18 +8,7 @@
     <script src="/static/htmx.min.js"></script>
     <link href="/static/app.css" rel="stylesheet">
     <link href="/static/bootstrap.min.css" rel="stylesheet">
-    <!-- <script src="/static/bootstrap.bundle.min.js"></script> -->
-    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> -->
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-    <style>
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
-            height: 100vh;
-            overflow: hidden;
-        }
-    </style>
 </head>
 
 <body>
@@ -31,7 +20,7 @@
             <div class="control-btn" title="Save Game">
                 {{template "save.html"}}
             </div>
-            <div class="control-btn" title="Settings">
+            <div class="control-btn" title="Settings" hx-get="/settings" hx-target="body" hx-push-url="true">
                 {{template "gear.html"}}
             </div>
         </div>
@@ -163,8 +152,6 @@
                             <span class="dice col-sm" hx-post="/api/roll/d20" hx-trigger="click">d20</span>
                         </div>
                         <br>
-
-                        {{template "vector-upload-area.html" .}}
                     </div>
                 </div>
             </div>

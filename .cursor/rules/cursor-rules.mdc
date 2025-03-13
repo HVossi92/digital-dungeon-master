@@ -1,0 +1,10 @@
+---
+description: Programming languages
+globs: Only use HTML, HTMX & Bootstrap on the frontend. Only use Go on the backend, and prefer the standard library.
+alwaysApply: false
+---
+
+# Your rule content
+
+- You can @ files here
+- You can use markdown but dont have to

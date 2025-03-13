@@ -4,8 +4,6 @@ Digital Dungeon Master - DDM - is an Ai driven role playing game
 
 ## Todos:
 
-- Move vector db upload into settings page
-- Create settings page
 - Get current token use / total tokens
 - Chain messages to keep context
 - Setup LLM communication, teach it to be a GM, add RAG context
