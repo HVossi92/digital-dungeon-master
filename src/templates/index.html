@@ -40,7 +40,7 @@
             <div class="col-12">
                 <!-- Scene Panel -->
                 <div class="panel scene-panel panel-corner-tl panel-corner-tr panel-corner-bl panel-corner-br"
-                    style="background-image: url('/placeholder.svg?height=400&width=800');" hx-get="/api/scene"
+                    style="background-image: url('/static/art/baldursgate.png'); " hx-get="/api/scene"
                     hx-trigger="load, sceneChange from:body" hx-swap="outerHTML">
                     <div class="panel-header">The Forgotten Ruins</div>
                     <div class="scene-overlay">
@@ -58,7 +58,7 @@
                     hx-get="/api/character" hx-trigger="load, characterUpdate from:body" hx-swap="innerHTML">
                     <div class="panel-header">Character</div>
                     <div class="character-image"
-                        style="background-image: url('/placeholder.svg?height=200&width=200');"></div>
+                        style="background-image: url('/static/art/tiefling.png'); background-position-y: 0rem;"></div>
                     <div class="character-stats">
                         <h5>Thorne Ironheart</h5>
                         <div>Level 5 Dwarf Paladin</div>
@@ -139,14 +139,17 @@
                         hx-trigger="load, newMessage from:body" hx-swap="innerHTML">
                     </div>
                     <div class="chat-input">
-                        <form hx-post="/chat" hx-trigger="submit" hx-target="#chat-messages" hx-swap="beforeend">
+                        <form hx-post="/chat" hx-indicator="#loading-spinner" hx-trigger="submit"
+                            hx-disabled-elt="#send-btn" hx-target="#chat-messages" hx-swap="beforeend">
                             <div class="input-group">
                                 <input type="text" name="message"
                                     class="form-control bg-dark text-light border-secondary"
                                     placeholder="What would you like to do?" aria-label="Message">
-                                <button class="btn btn-outline-secondary" type="submit"
+                                <button id="send-btn" class="btn btn-outline-secondary" type="submit"
                                     style="color: var(--accent-gold); border-color: var(--accent-gold);">
                                     {{template "send.html"}}
+                                    <div id="loading-spinner" class="spinner-border htmx-indicator" role="status">
+                                    </div>
                                 </button>
                             </div>
                         </form>
@@ -171,7 +174,7 @@
                 <div class="panel enemy-panel panel-corner-tl panel-corner-tr panel-corner-bl panel-corner-br"
                     hx-get="/api/enemy" hx-trigger="load, enemyUpdate from:body" hx-swap="innerHTML">
                     <div class="panel-header">Enemy</div>
-                    <div class="enemy-image" style="background-image: url('/placeholder.svg?height=200&width=200');">
+                    <div class="enemy-image" style="background-image: url('/static/art/skeleton.png'); background-position-y: 0rem;">
                     </div>
                     <div class="enemy-stats">
                         <h5>Iron Guardian</h5>

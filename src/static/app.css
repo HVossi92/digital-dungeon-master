@@ -296,3 +296,15 @@ body {
     border-left: none;
     border-top: none;
 }
+
+.htmx-indicator {
+    display: none !important; 
+}
+
+.htmx-request .htmx-indicator {
+    display: block !important;
+}
+
+.htmx-request.htmx-indicator {
+    display: block !important;
+}
