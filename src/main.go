@@ -6,8 +6,10 @@ import (
 	"html/template"
 	"io/fs"
 	"log"
+	"math/rand/v2"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/hvossi92/gollama/src/helpers"
@@ -86,6 +88,7 @@ func main() {
 	http.HandleFunc("GET /vector", server.GetVectors)
 	http.HandleFunc("POST /vector", server.UploadVector)
 	http.HandleFunc("PUT /settings", server.UpdateSettings)
+	http.HandleFunc("GET /die", server.getDie)
 	http.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(server.staticSubFS))))
 
@@ -228,4 +231,14 @@ func (s *Server) UpdateSettings(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func (s *Server) getDie(w http.ResponseWriter, r *http.Request) {
+	dieStr := r.URL.Query().Get("die")
+	die, err := strconv.Atoi(dieStr)
+	if err != nil {
+		http.Error(w, "Invalid die value", http.StatusBadRequest)
+		return
+	}
+	fmt.Print(rand.IntN(die))
 }
