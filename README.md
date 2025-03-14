@@ -4,6 +4,7 @@ Digital Dungeon Master - DDM - is an Ai driven role playing game
 
 ## Todos:
 
+- Refactor to use templ + namings to reflect MVC architecture
 - Get current token use / total tokens
 - Chain messages to keep context
 - Setup LLM communication, teach it to be a GM, add RAG context

@@ -3,7 +3,6 @@ package main
 import (
 	"embed"
 	"fmt"
-	"html/template"
 	"io/fs"
 	"log"
 	"math/rand/v2"
@@ -15,17 +14,14 @@ import (
 
 	"github.com/hvossi92/gollama/src/helpers"
 	"github.com/hvossi92/gollama/src/services"
+	"github.com/hvossi92/gollama/src/templates"
 )
-
-//go:embed templates
-var templatesFs embed.FS
 
 //go:embed static
 var staticFs embed.FS
 
 // Server struct to hold all services and templates
 type Server struct {
-	templates     *template.Template
 	staticSubFS   fs.FS
 	vectorDB      *services.DatabaseService
 	ollamaService *services.OllamaService
@@ -33,19 +29,6 @@ type Server struct {
 
 // NewServer initializes and returns a new Server instance with all services set up.
 func NewServer() (*Server, error) {
-	// Parse templates
-	templates, err := template.ParseFS(templatesFs,
-		"templates/*.html",
-		"templates/**/*.html",
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse templates: %w", err)
-	}
-	// fmt.Println("Parsed Template Names:")
-	// for _, tmpl := range templates.Templates() {
-	// 	fmt.Println("-", tmpl.Name())
-	// }
-
 	// Create sub filesystem for static assets
 	staticSubFS, err := fs.Sub(staticFs, "static")
 	if err != nil {
@@ -63,7 +46,6 @@ func NewServer() (*Server, error) {
 	ollamaService := services.SetUpOllamaService(settings.URL, settings.LLM, settings.Embedding, staticFs)
 
 	return &Server{
-		templates:     templates,
 		staticSubFS:   staticSubFS,
 		vectorDB:      vectorDB,
 		ollamaService: ollamaService,
@@ -109,30 +91,30 @@ func (s *Server) fetchIndexPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	settings, err := s.vectorDB.GetSettings()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	data := struct {
-		URL       string
-		LLM       string
-		Embedding string
-	}{
-		URL:       settings.URL,
-		LLM:       settings.LLM,
-		Embedding: settings.Embedding,
-	}
+	// settings, err := s.vectorDB.GetSettings()
+	// if err != nil {
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
+	// data := struct {
+	// 	URL       string
+	// 	LLM       string
+	// 	Embedding string
+	// }{
+	// 	URL:       settings.URL,
+	// 	LLM:       settings.LLM,
+	// 	Embedding: settings.Embedding,
+	// }
 
-	err = s.templates.ExecuteTemplate(w, "index.html", data)
+	err := templates.Index().Render(r.Context(), w)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error executing template: %v", err), http.StatusInternalServerError)
 	}
 }
 
 func (s *Server) fetchSettingsPage(w http.ResponseWriter, r *http.Request) {
-	err := s.templates.ExecuteTemplate(w, "settings.html", nil)
-	if err != nil {
+	templates.Settings().Render(r.Context(), w)
+	if err := templates.Settings().Render(r.Context(), w); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -162,14 +144,7 @@ func (s *Server) fetchAiResponse(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	data := struct {
-		UserMessage string
-		AIResponse  string
-	}{
-		UserMessage: message,
-		AIResponse:  aiResponse,
-	}
-	err = s.templates.ExecuteTemplate(w, "message.html", data)
+	err = templates.Message(message, aiResponse).Render(r.Context(), w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -181,14 +156,7 @@ func (s *Server) GetVectors(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	data := struct {
-		UserMessage string
-		AIResponse  string
-	}{
-		UserMessage: "Get all vectors",
-		AIResponse:  text,
-	}
-	err = s.templates.ExecuteTemplate(w, "message.html", data)
+	err = templates.Message("Get all vectors", text).Render(r.Context(), w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
