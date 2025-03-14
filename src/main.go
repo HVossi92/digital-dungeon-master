@@ -11,6 +11,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/hvossi92/gollama/src/helpers"
 	"github.com/hvossi92/gollama/src/services"
@@ -70,11 +71,12 @@ func NewServer() (*Server, error) {
 }
 
 func main() {
+	start := time.Now()
 	server, err := NewServer()
 	if err != nil {
 		log.Fatalf("Failed to initialize server: %v", err)
 	}
-	defer server.vectorDB.Close() // Important to close VectorDB service when done
+	defer server.vectorDB.Close()
 
 	err = os.RemoveAll("./uploads")
 	if err != nil {
@@ -93,6 +95,8 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(server.staticSubFS))))
 
 	fmt.Println("Server listening on port 2048")
+	duration := time.Since(start)
+	fmt.Printf("Server started in %s\n", duration)
 	err = http.ListenAndServe(":2048", nil)
 	if err != nil {
 		log.Fatalf("Server failed to start: %v", err)
