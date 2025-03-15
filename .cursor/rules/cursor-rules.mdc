@@ -3,8 +3,6 @@ description: How to work in this project
 globs: 
 alwaysApply: false
 ---
-This project uses Go for the backend, a-h templ for templating, HTMX & Bootstrap 5 for the frontend.
-
 # HTMX rules:
 
     You are an expert in htmx and modern web application development.
@@ -14,6 +12,7 @@ This project uses Go for the backend, a-h templ for templating, HTMX & Bootstrap
     - Utilize HTMX's capabilities to enhance the interactivity of web applications without heavy JavaScript.
     - Prioritize maintainability and readability; adhere to clean coding practices throughout your HTML and backend code.
     - Use descriptive attribute names in HTMX for better understanding and collaboration among developers.
+    - **Favor standard HTML links and forms for primary navigation. Use HTMX primarily for targeted, isolated updates within a page.**
 
     HTMX Usage
     - Use hx-get, hx-post, and other HTMX attributes to define server requests directly in HTML for cleaner separation of concerns.
@@ -21,6 +20,8 @@ This project uses Go for the backend, a-h templ for templating, HTMX & Bootstrap
     - Favor declarative attributes over JavaScript event handlers to streamline interactivity and reduce the complexity of your code.
     - Leverage hx-trigger to customize event handling and control when requests are sent based on user interactions.
     - Utilize hx-target to specify where the response content should be injected in the DOM, promoting flexibility and reusability.
+    - **Use hx-push-url to update the browser's URL without a full page refresh *only* when necessary for in-page updates, and avoid it for standard page navigation.**
+    - **Avoid using hx-boost. Prefer standard HTML links and forms for navigation to ensure compatibility with browser features and maintainability.**
 
     Error Handling and Validation
     - Implement server-side validation to ensure data integrity before processing requests from HTMX.
@@ -37,13 +38,16 @@ This project uses Go for the backend, a-h templ for templating, HTMX & Bootstrap
     - Minimize server response sizes by returning only essential HTML and avoiding unnecessary data (e.g., JSON).
     - Implement caching strategies on the server side to speed up responses for frequently requested HTMX endpoints.
     - Optimize HTML rendering by precompiling reusable fragments or components.
+    - **Set appropriate `Cache-Control` headers for static assets (CSS, JavaScript) to enable browser caching and reduce load times. Use versioning (e.g., `/style.css?v=1`) for cache busting when updating assets.**
 
     Key Conventions
     1. Follow a consistent naming convention for HTMX attributes to enhance clarity and maintainability.
     2. Prioritize user experience by ensuring that HTMX interactions are fast and intuitive.
     3. Maintain a clear and modular structure for your templates, separating concerns for better readability and manageability.
+    4. **Think in terms of "full page load appropriate" vs. "targeted update" when designing navigation and interactions.**
 
     Refer to the HTMX documentation for best practices and detailed examples of usage patterns.
+    Refer to RFC 9110 (HTTP Semantics) for cache-control headers and http semantics
 
 # Go rules:
 
@@ -76,4 +80,5 @@ This project uses Go for the backend, a-h templ for templating, HTMX & Bootstrap
   - Offer suggestions for testing the API endpoints using Go's testing package.
 
   Always prioritize security, scalability, and maintainability in your API designs and implementations. Leverage the power and simplicity of Go's standard library to create efficient and idiomatic APIs.
-  
+  - **When handling form submissions or API requests intended to trigger a full page navigation (e.g., after a successful POST), return a `303 See Other` redirect response to guide the user to the new page using standard links.**
+  - **For PUT or DELETE requests submitted via HTMX forms, respond with a `200 OK` and an `HX-Redirect` header containing the URL to redirect to, mimicking the POST-Redirect-GET pattern. Ensure this is used to initiate full page navigations rather than partial updates.**
