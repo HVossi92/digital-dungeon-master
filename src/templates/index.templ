@@ -16,7 +16,7 @@ templ Index() {
 						@icons.Save()
 					</div>
 					<a class="control-btn" title="Settings" href="/settings" hx-target="body">
-                        @icons.Gear()
+						@icons.Gear()
 					</a>
 				</div>
 				<div class="row g-2 mb-2">
@@ -80,9 +80,9 @@ templ Index() {
 									</div>
 								</div>
 								<div class="abilities">
-									<div class="ability-btn" hx-post="/api/ability/smite" hx-trigger="click">Divine Smite</div>
-									<div class="ability-btn" hx-post="/api/ability/heal" hx-trigger="click">Lay on Hands</div>
-									<div class="ability-btn" hx-post="/api/ability/shield" hx-trigger="click">
+									<div class="main-btn" hx-post="/api/ability/smite" hx-trigger="click">Divine Smite</div>
+									<div class="main-btn" hx-post="/api/ability/heal" hx-trigger="click">Lay on Hands</div>
+									<div class="main-btn" hx-post="/api/ability/shield" hx-trigger="click">
 										Shield of Faith
 									</div>
 								</div>
@@ -116,60 +116,23 @@ templ Index() {
 							</div>
 						</div>
 					</div>
-					
 					<!-- Chat Panel - Full width on mobile -->
 					<div class="col-12 col-md mb-2">
 						<div class="panel chat-panel panel-corner-tl panel-corner-tr panel-corner-bl panel-corner-br">
-							<div class="panel-header">Adventure Log</div>
-							<div
-								class="chat-messages"
-								id="chat-messages"
-								hx-get="/api/messages"
-								hx-trigger="load, newMessage from:body"
-								hx-swap="innerHTML"
-							></div>
-							<div class="chat-input">
-								<form
-									hx-post="/chat"
-									hx-indicator="#loading-spinner"
-									hx-trigger="submit"
-									hx-disabled-elt="#send-btn"
-									hx-target="#chat-messages"
-									hx-swap="beforeend"
-								>
-									<div class="input-group">
-										<input
-											type="text"
-											name="message"
-											class="form-control bg-dark text-light border-secondary"
-											placeholder="What would you like to do?"
-											aria-label="Message"
-										/>
-										<button
-											id="send-btn"
-											class="btn btn-outline-secondary"
-											type="submit"
-											style="color: var(--accent-gold); border-color: var(--accent-gold);"
-										>
-											@icons.Send()
-											<div id="loading-spinner" class="spinner-border htmx-indicator" role="status"></div>
-										</button>
-									</div>
-								</form>
-								<br/>
-								<div class="row dice-section mt-2">
-									<span class="dice col-2" hx-get="/die?die=4" hx-trigger="click">d4</span>
-									<span class="dice col-2" hx-get="/die?die=6" hx-trigger="click">d6</span>
-									<span class="dice col-2" hx-get="/die?die=8" hx-trigger="click">d8</span>
-									<span class="dice col-2" hx-get="/die?die=10" hx-trigger="click">d10</span>
-									<span class="dice col-2" hx-get="/die?die=12" hx-trigger="click">d12</span>
-									<span class="dice col-2" hx-get="/die?die=20" hx-trigger="click">d20</span>
-								</div>
-								<br/>
-							</div>
+							<button
+								type="button"
+								hx-post="/start"
+								class="main-btn"
+								style="margin: 20%;"
+								hx-swap="outerHTML"
+								hx-disabled-elt="this"
+								hx-indicator="#indicator"
+							>
+								Start your adventure
+								<span id="indicator" class="htmx-indicator">Travelling to the sword coast...</span>
+							</button>
 						</div>
 					</div>
-					
 					<!-- Enemy Panel - Full width on mobile -->
 					<div class="col-12 col-md-3 mb-2" style="max-width: 300px;">
 						<div

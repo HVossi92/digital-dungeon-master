@@ -68,6 +68,7 @@ func main() {
 	http.HandleFunc("/", server.fetchIndexPage)
 	http.HandleFunc("/settings", server.fetchSettingsPage)
 	http.HandleFunc("POST /settings", server.updateSettings)
+	http.HandleFunc("POST /start", server.startAdventure)
 	http.HandleFunc("POST /chat", server.fetchAiResponse)
 	http.HandleFunc("GET /vector", server.GetVectors)
 	http.HandleFunc("POST /vector", server.UploadVector)
@@ -131,6 +132,22 @@ func (s *Server) updateSettings(w http.ResponseWriter, r *http.Request) {
 		Embedding: r.FormValue("embedding"),
 	}
 	fmt.Println(settings)
+}
+
+func (s *Server) startAdventure(w http.ResponseWriter, r *http.Request) {
+	var err error
+	fmt.Println("Starting adventure")
+	message := "I arrive at the heart of Baldur's Gate, what do I see?"
+	aiResponse, err := s.ollamaService.AskLLM(message, s.vectorDB)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		panic(err)
+	}
+	firstMsgComponent := templates.Message(message, aiResponse)
+	err = templates.ChatInterface(firstMsgComponent).Render(r.Context(), w)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func (s *Server) fetchAiResponse(w http.ResponseWriter, r *http.Request) {

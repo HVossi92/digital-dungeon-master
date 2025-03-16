@@ -164,7 +164,7 @@ body {
     margin-top: 15px;
 }
 
-.ability-btn {
+.main-btn {
     background-color: rgba(42, 28, 23, 0.8);
     border: 1px solid var(--accent-gold);
     color: var(--accent-gold);
@@ -174,9 +174,21 @@ body {
     transition: all 0.2s;
 }
 
-.ability-btn:hover {
+.main-btn:hover {
     background-color: var(--accent-gold);
     color: #2a1c17;
+}
+
+.main-btn {
+    padding: 4px 8px;
+    font-size: 0.9rem;
+}
+
+.main-btn:disabled,
+.main-btn[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 .inventory-section,
@@ -299,7 +311,7 @@ body {
 }
 
 .htmx-indicator {
-    display: none !important; 
+    display: none !important;
 }
 
 .htmx-request .htmx-indicator {
@@ -316,17 +328,17 @@ body {
         overflow-y: auto !important;
         height: auto !important;
     }
-    
+
     .game-container {
         height: auto;
         overflow-y: visible;
         padding: 5px;
     }
-    
+
     .scene-panel {
         height: 25vh;
     }
-    
+
     .character-panel,
     .enemy-panel,
     .chat-panel {
@@ -334,34 +346,30 @@ body {
         min-height: 50vh;
         margin-bottom: 15px;
     }
-    
+
     .chat-messages {
         max-height: 40vh;
     }
-    
+
     .character-image,
     .enemy-image {
         height: 150px;
     }
-    
+
     .dice {
         margin: 0 2px;
         width: 35px;
         height: 35px;
         font-size: 0.9rem;
     }
-    
-    .ability-btn {
-        padding: 4px 8px;
-        font-size: 0.9rem;
-    }
-    
+
+
     .inventory-item,
     .status-effect {
         width: 35px;
         height: 35px;
     }
-    
+
     /* Override max-width on mobile to ensure full width */
     .col-12[style*="max-width"] {
         max-width: 100% !important;

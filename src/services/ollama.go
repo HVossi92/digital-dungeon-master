@@ -76,28 +76,6 @@ func SetUpOllamaService(url string, llm string, embedding string, staticFs embed
 
 func (s *OllamaService) AskLLM(question string, vectorService *DatabaseService) (string, error) {
 
-	// questionEmbedding, err := s.GetVectorEmbedding(question)
-	// if err != nil {
-	// 	return "", fmt.Errorf("failed to embed question: %w", err)
-	// }
-
-	// similarItems, err := vectorService.FindSimilarVectors(questionEmbedding)
-	// if err != nil {
-	// 	return "", fmt.Errorf("failed to find similar vectors: %w", err)
-	// }
-
-	// context := ""
-	// if len(similarItems) > 0 {
-	// 	contextBuilder := strings.Builder{}
-	// 	contextBuilder.WriteString("D&D Rule References:\n")
-	// 	for _, item := range similarItems {
-	// 		contextBuilder.WriteString(fmt.Sprintf("- %s\n", item.Text))
-	// 	}
-	// 	context = contextBuilder.String()
-	// } else {
-	// 	context = "No relevant context found in the database.\n"
-	// }
-
 	systemPromptMsg := ChatMessage{
 		Role:    "system",
 		Content: s.systemPrompt,
@@ -105,12 +83,7 @@ func (s *OllamaService) AskLLM(question string, vectorService *DatabaseService) 
 	s.messages = append(s.messages, systemPromptMsg)
 
 	userMsg := ChatMessage{
-		Role: "user",
-		// Content: fmt.Sprintf(
-		// 	"Rules Reference:\n%s\nPlayer Action: %s\nDM Response:",
-		// 	context,
-		// 	question,
-		// ),
+		Role:    "user",
 		Content: question,
 	}
 	s.messages = append(s.messages, userMsg)
@@ -155,3 +128,27 @@ func (s *OllamaService) GetVectorEmbedding(text string) ([]float32, error) {
 	}
 	return ollamaResponse.Embeddings[0], nil // Return ollamaResponse.Message.Content
 }
+
+// func getEmbeddings() string{
+// questionEmbedding, err := s.GetVectorEmbedding(question)
+// if err != nil {
+// 	return "", fmt.Errorf("failed to embed question: %w", err)
+// }
+
+// similarItems, err := vectorService.FindSimilarVectors(questionEmbedding)
+// if err != nil {
+// 	return "", fmt.Errorf("failed to find similar vectors: %w", err)
+// }
+
+// context := ""
+// if len(similarItems) > 0 {
+// 	contextBuilder := strings.Builder{}
+// 	contextBuilder.WriteString("D&D Rule References:\n")
+// 	for _, item := range similarItems {
+// 		contextBuilder.WriteString(fmt.Sprintf("- %s\n", item.Text))
+// 	}
+// 	context = contextBuilder.String()
+// } else {
+// 	context = "No relevant context found in the database.\n"
+// }
+// }

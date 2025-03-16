@@ -1,0 +1,54 @@
+package templates
+
+import "github.com/hvossi92/gollama/src/templates/icons"
+
+templ ChatInterface(firstMessage templ.Component) {
+	<div class="panel-header">Adventure Log</div>
+	<div
+		class="chat-messages"
+		id="chat-messages"
+		hx-get="/api/messages"
+		hx-trigger="load, newMessage from:body"
+		hx-swap="innerHTML"
+	>
+		@firstMessage
+	</div>
+	<div class="chat-input">
+		<form
+			hx-post="/chat"
+			hx-indicator="#loading-spinner"
+			hx-trigger="submit"
+			hx-disabled-elt="#send-btn"
+			hx-target="#chat-messages"
+			hx-swap="beforeend"
+		>
+			<div class="input-group">
+				<input
+					type="text"
+					name="message"
+					class="form-control bg-dark text-light border-secondary"
+					placeholder="What would you like to do?"
+					aria-label="Message"
+				/>
+				<button
+					id="send-btn"
+					class="btn btn-outline-secondary"
+					type="submit"
+					style="color: var(--accent-gold); border-color: var(--accent-gold);"
+				>
+					@icons.Send()
+					<div id="loading-spinner" class="spinner-border htmx-indicator" role="status"></div>
+				</button>
+			</div>
+		</form>
+		// <br/>
+		// <div class="row dice-section mt-2">
+		// 	<span class="dice col-2" hx-get="/die?die=4" hx-trigger="click">d4</span>
+		// 	<span class="dice col-2" hx-get="/die?die=6" hx-trigger="click">d6</span>
+		// 	<span class="dice col-2" hx-get="/die?die=8" hx-trigger="click">d8</span>
+		// 	<span class="dice col-2" hx-get="/die?die=10" hx-trigger="click">d10</span>
+		// 	<span class="dice col-2" hx-get="/die?die=12" hx-trigger="click">d12</span>
+		// 	<span class="dice col-2" hx-get="/die?die=20" hx-trigger="click">d20</span>
+		// </div>
+	</div>
+}
