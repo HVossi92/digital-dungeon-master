@@ -17,6 +17,7 @@ Digital Dungeon Master - DDM - is an Ai driven role playing game
 - How to handle health, mana, stamina and / or other stats?
 - Create llamafiles and embed or at least include and automatically start
 - How is character data handled?
+- Delete last ai response and regenerate
 - HTMX scroll to last chat message
 - Create game art
 - Incorporate game art
