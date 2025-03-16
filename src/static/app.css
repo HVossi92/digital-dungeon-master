@@ -12,12 +12,13 @@ body {
     color: var(--text-light) !important;
     font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif !important;
     height: 100vh !important;
-    overflow: hidden !important;
+    overflow: auto !important;
 }
 
 .game-container {
-    height: 100vh;
+    height: 100%;
     padding: 10px;
+    overflow-y: auto;
 }
 
 .panel {
@@ -307,4 +308,62 @@ body {
 
 .htmx-request.htmx-indicator {
     display: block !important;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    body {
+        overflow-y: auto !important;
+        height: auto !important;
+    }
+    
+    .game-container {
+        height: auto;
+        overflow-y: visible;
+        padding: 5px;
+    }
+    
+    .scene-panel {
+        height: 25vh;
+    }
+    
+    .character-panel,
+    .enemy-panel,
+    .chat-panel {
+        height: auto;
+        min-height: 50vh;
+        margin-bottom: 15px;
+    }
+    
+    .chat-messages {
+        max-height: 40vh;
+    }
+    
+    .character-image,
+    .enemy-image {
+        height: 150px;
+    }
+    
+    .dice {
+        margin: 0 2px;
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
+    }
+    
+    .ability-btn {
+        padding: 4px 8px;
+        font-size: 0.9rem;
+    }
+    
+    .inventory-item,
+    .status-effect {
+        width: 35px;
+        height: 35px;
+    }
+    
+    /* Override max-width on mobile to ensure full width */
+    .col-12[style*="max-width"] {
+        max-width: 100% !important;
+    }
 }
