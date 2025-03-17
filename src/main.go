@@ -137,7 +137,10 @@ func (s *Server) updateSettings(w http.ResponseWriter, r *http.Request) {
 func (s *Server) startAdventure(w http.ResponseWriter, r *http.Request) {
 	var err error
 	fmt.Println("Starting adventure")
-	message := "I arrive at the heart of Baldur's Gate, what do I see?"
+	// Setup random adventure using oracle
+	myAdventure := services.ConsultAdventureOracle()
+	fmt.Println(myAdventure)
+	message := fmt.Sprintf("I am ready to start my adventure: \"{%s}\". What do I do?", myAdventure)
 	aiResponse, err := s.ollamaService.AskLLM(message, s.vectorDB)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -151,6 +154,7 @@ func (s *Server) startAdventure(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) fetchAiResponse(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(services.ConsultD6Oracle())
 	message := r.FormValue("message")
 
 	var err error

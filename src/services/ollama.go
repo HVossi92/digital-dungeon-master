@@ -65,23 +65,31 @@ type Point struct {
 
 // SetUpVectorDBService creates and initializes a new VectorDBService.
 func SetUpOllamaService(url string, llm string, embedding string, staticFs embed.FS) *OllamaService {
-	filename := "static/systemPrompt.txt" // Replace with your text file name
+	filename := "static/systemPrompt.txt"
 	content, err := fs.ReadFile(staticFs, filename)
 	if err != nil {
 		panic(err)
 	}
 
-	return &OllamaService{chatEndpoint: url + "/api/chat", embeddingEndpoint: url + "/api/embed", llm: llm, embeddingModel: embedding, systemPrompt: string(content)}
-}
-
-func (s *OllamaService) AskLLM(question string, vectorService *DatabaseService) (string, error) {
+	service := &OllamaService{
+		chatEndpoint:      url + "/api/chat",
+		embeddingEndpoint: url + "/api/embed",
+		llm:               llm,
+		embeddingModel:    embedding,
+		systemPrompt:      string(content),
+		messages:          make([]ChatMessage, 0),
+	}
 
 	systemPromptMsg := ChatMessage{
 		Role:    "system",
-		Content: s.systemPrompt,
+		Content: service.systemPrompt,
 	}
-	s.messages = append(s.messages, systemPromptMsg)
+	service.messages = append(service.messages, systemPromptMsg)
 
+	return service
+}
+
+func (s *OllamaService) AskLLM(question string, vectorService *DatabaseService) (string, error) {
 	userMsg := ChatMessage{
 		Role:    "user",
 		Content: question,

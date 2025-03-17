@@ -122,7 +122,7 @@ func (s *DatabaseService) createSettingsTable() error {
 		_, err = s.db.Exec(`INSERT INTO settings (url, llm, embedding_model) 
 			VALUES (?, ?, ?)`,
 			"http://192.168.178.105:11434",
-			"llama3.1:8b-instruct-q8_0",
+			"gemma3:12b",
 			"nomic-embed-text:latest")
 		if err != nil {
 			return fmt.Errorf("failed to insert default settings: %w", err)
