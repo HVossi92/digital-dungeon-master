@@ -4,6 +4,7 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
+	"time"
 
 	"github.com/hvossi92/gollama/src/helpers"
 	"github.com/hvossi92/gollama/src/utils"
@@ -103,11 +104,13 @@ func (s *OllamaService) AskLLM(question string, vectorService *DatabaseService) 
 		Stream:   false,
 	}
 	fmt.Println("Sending request to ollama")
+	start := time.Now()
 	chatResponse, err := utils.SendPostRequest[ChatRequest, ChatResponse](s.chatEndpoint, request) // Use ChatRequest and ChatResponse
 	if err != nil {
 		fmt.Println(err.Error())
 		return "", err
 	}
+	fmt.Printf("Receiving response from '%s' took %s\n", s.llm, time.Since(start))
 
 	responseTxt := helpers.StripLAiResponse(chatResponse.Message.Content)
 	fmt.Println("Received response from ollama")
@@ -118,7 +121,6 @@ func (s *OllamaService) AskLLM(question string, vectorService *DatabaseService) 
 	}
 	s.messages = append(s.messages, aiResponseMsg)
 
-	fmt.Println("Messages:", s.messages)
 	return responseTxt, nil // Return response from LLM
 }
 
@@ -160,3 +162,12 @@ func (s *OllamaService) GetVectorEmbedding(text string) ([]float32, error) {
 // 	context = "No relevant context found in the database.\n"
 // }
 // }
+
+// GetMessages returns the current message history
+func (s *OllamaService) GetMessages() []ChatMessage {
+	return s.messages
+}
+
+func (s *OllamaService) LoadMessages(messages []ChatMessage) {
+	s.messages = messages
+}

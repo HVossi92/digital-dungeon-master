@@ -10,7 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import "github.com/hvossi92/gollama/src/templates/icons"
 
-func ChatInterface(firstMessage templ.Component) templ.Component {
+func ChatInterface(messages []templ.Component) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -35,9 +35,11 @@ func ChatInterface(firstMessage templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = firstMessage.Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
+		for _, msg := range messages {
+			templ_7745c5c3_Err = msg.Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><div class=\"chat-input\"><form hx-post=\"/chat\" hx-indicator=\"#loading-spinner\" hx-trigger=\"submit\" hx-disabled-elt=\"#send-btn\" hx-target=\"#chat-messages\" hx-swap=\"beforeend\"><div class=\"input-group\"><input type=\"text\" name=\"message\" class=\"form-control bg-dark text-light border-secondary\" placeholder=\"What would you like to do?\" aria-label=\"Message\"> <button id=\"send-btn\" class=\"btn btn-outline-secondary\" type=\"submit\" style=\"color: var(--accent-gold); border-color: var(--accent-gold);\">")
 		if templ_7745c5c3_Err != nil {

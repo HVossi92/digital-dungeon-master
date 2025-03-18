@@ -2,7 +2,7 @@ package templates
 
 import "github.com/hvossi92/gollama/src/templates/icons"
 
-templ Index() {
+templ Index(messages []templ.Component) {
 	<!DOCTYPE html>
 	<html lang="en">
 		@head()
@@ -12,9 +12,9 @@ templ Index() {
 					<div class="control-btn" title="Help">
 						@icons.Question()
 					</div>
-					<div class="control-btn" title="Save Game">
+					<a class="control-btn" title="Save Game" href="/save-games" hx-target="body">
 						@icons.Save()
-					</div>
+					</a>
 					<a class="control-btn" title="Settings" href="/settings" hx-target="body">
 						@icons.Gear()
 					</a>
@@ -75,18 +75,22 @@ templ Index() {
 					<!-- Chat Panel - Full width on mobile -->
 					<div class="col-12 col-md mb-2">
 						<div class="panel chat-panel panel-corner-tl panel-corner-tr panel-corner-bl panel-corner-br">
-							<button
-								type="button"
-								hx-post="/start"
-								class="main-btn"
-								style="margin: 20%;"
-								hx-swap="outerHTML"
-								hx-disabled-elt="this"
-								hx-indicator="#indicator"
-							>
-								Start your adventure
-								<span id="indicator" class="htmx-indicator">Travelling to the sword coast...</span>
-							</button>
+							if len(messages) > 0 {
+								@ChatInterface(messages)
+							} else {
+								<button
+									type="button"
+									hx-post="/start"
+									class="main-btn"
+									style="margin: 20%;"
+									hx-swap="outerHTML"
+									hx-disabled-elt="this"
+									hx-indicator="#indicator"
+								>
+									Start your adventure
+									<span id="indicator" class="htmx-indicator">Travelling to the sword coast...</span>
+								</button>
+							}
 						</div>
 					</div>
 					<!-- Enemy Panel - Full width on mobile -->

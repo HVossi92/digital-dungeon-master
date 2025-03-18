@@ -1,0 +1,59 @@
+package templates
+
+import (
+    "fmt"
+    "github.com/hvossi92/gollama/src/services"
+)
+
+templ SaveGames(saves []services.SaveGame) {
+    <!DOCTYPE html>
+    <html lang="en">
+        @head()
+        <body>
+            <div class="game-container">
+                <div class="panel panel-corner-tl panel-corner-tr panel-corner-bl panel-corner-br">
+                    <div class="panel-header">Save Games</div>
+                    <div class="p-3">
+                        <form hx-post="/save-game" hx-target="body" class="mb-4">
+                            <div class="input-group">
+                                <input type="text" name="name" class="form-control" placeholder="Save game name" required/>
+                                <button type="submit" class="main-btn">Save Game</button>
+                            </div>
+                        </form>
+
+                        <div id="saves-table">
+                            <table class="table table-dark">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Date</th>
+                                        <th>Load</th>
+                                        <th>Delete</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    for _, save := range saves {
+                                        <tr>
+                                            <td>{save.Name}</td>
+                                            <td>{save.Created}</td>
+                                            <td>
+                                                <button class="btn btn-primary btn-sm" 
+                                                    hx-get={fmt.Sprintf("/save-game/%d", save.ID)}
+                                                    hx-target="body">Load</button>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-danger btn-sm" 
+                                                    hx-delete={fmt.Sprintf("/save-game/%d", save.ID)}
+                                                    hx-target="body">Delete</button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </body>
+    </html>
+} 

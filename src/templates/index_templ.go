@@ -10,7 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import "github.com/hvossi92/gollama/src/templates/icons"
 
-func Index() templ.Component {
+func Index(messages []templ.Component) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -47,7 +47,7 @@ func Index() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div><div class=\"control-btn\" title=\"Save Game\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div><a class=\"control-btn\" title=\"Save Game\" href=\"/save-games\" hx-target=\"body\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -55,7 +55,7 @@ func Index() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div><a class=\"control-btn\" title=\"Settings\" href=\"/settings\" hx-target=\"body\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</a> <a class=\"control-btn\" title=\"Settings\" href=\"/settings\" hx-target=\"body\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -63,7 +63,22 @@ func Index() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</a></div><div class=\"row g-2 mb-2\"><div class=\"col-12\"><!-- Scene Panel --><div class=\"panel scene-panel panel-corner-tl panel-corner-tr panel-corner-bl panel-corner-br\" style=\"background-image: url(&#39;/static/art/baldursgate.png&#39;); \" hx-get=\"/api/scene\" hx-trigger=\"load, sceneChange from:body\" hx-swap=\"outerHTML\"><div class=\"panel-header\">The Forgotten Ruins</div><div class=\"scene-overlay\">Ancient stone columns rise from the mist, their surfaces etched with mysterious runes that glow with a faint blue light.</div></div></div></div><div class=\"row g-2\"><!-- Character Panel - Always visible on mobile, smaller width --><div class=\"col-12 col-md-3 mb-2\" style=\"max-width: 300px;\"><div class=\"panel character-panel panel-corner-tl panel-corner-tr panel-corner-bl panel-corner-br\" hx-get=\"/api/character\" hx-trigger=\"load, characterUpdate from:body\" hx-swap=\"innerHTML\"><div class=\"panel-header\">Character</div><div class=\"character-image\" style=\"background-image: url(&#39;/static/art/tiefling.png&#39;); background-position-y: 0rem;\"></div><div class=\"character-stats\"><h5>Thorne Ironheart</h5><div>Level 5 Dwarf Paladin</div><div class=\"mt-3\">Health</div><div class=\"stat-bar\"><div class=\"stat-fill health-fill\" style=\"width: 75%;\"></div><div class=\"stat-value\">75/100</div></div><div>Mana</div><div class=\"stat-bar\"><div class=\"stat-fill mana-fill\" style=\"width: 60%;\"></div><div class=\"stat-value\">30/50</div></div><div>Stamina</div><div class=\"stat-bar\"><div class=\"stat-fill stamina-fill\" style=\"width: 90%;\"></div><div class=\"stat-value\">45/50</div></div></div></div></div><!-- Chat Panel - Full width on mobile --><div class=\"col-12 col-md mb-2\"><div class=\"panel chat-panel panel-corner-tl panel-corner-tr panel-corner-bl panel-corner-br\"><button type=\"button\" hx-post=\"/start\" class=\"main-btn\" style=\"margin: 20%;\" hx-swap=\"outerHTML\" hx-disabled-elt=\"this\" hx-indicator=\"#indicator\">Start your adventure <span id=\"indicator\" class=\"htmx-indicator\">Travelling to the sword coast...</span></button></div></div><!-- Enemy Panel - Full width on mobile --><div class=\"col-12 col-md-3 mb-2\" style=\"max-width: 300px;\"><div class=\"panel enemy-panel panel-corner-tl panel-corner-tr panel-corner-bl panel-corner-br\" hx-get=\"/api/enemy\" hx-trigger=\"load, enemyUpdate from:body\" hx-swap=\"innerHTML\"><div class=\"panel-header\">Enemy</div><div class=\"enemy-image\" style=\"background-image: url(&#39;/static/art/skeleton.png&#39;); background-position-y: 0rem;\"></div><div class=\"enemy-stats\"><h5>Iron Guardian</h5><div>Level 6 Construct</div><div class=\"mt-3\">Health</div><div class=\"stat-bar\"><div class=\"stat-fill health-fill\" style=\"width: 90%;\"></div><div class=\"stat-value\">135/150</div></div><div>Energy</div><div class=\"stat-bar\"><div class=\"stat-fill mana-fill\" style=\"width: 100%;\"></div><div class=\"stat-value\">80/80</div></div></div></div></div></div></div><script>\n        // Auto-scroll chat to bottom\n        function scrollChatToBottom() {\n            const chatMessages = document.getElementById('chat-messages');\n            if (chatMessages) {\n                chatMessages.scrollTop = chatMessages.scrollHeight;\n            }\n        }\n\n        // Call on page load\n        document.addEventListener('DOMContentLoaded', scrollChatToBottom);\n\n        // Call when new messages are added\n        document.body.addEventListener('htmx:afterSwap', function (event) {\n            if (event.detail.target.id === 'chat-messages') {\n                scrollChatToBottom();\n            }\n        });\n    </script></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</a></div><div class=\"row g-2 mb-2\"><div class=\"col-12\"><!-- Scene Panel --><div class=\"panel scene-panel panel-corner-tl panel-corner-tr panel-corner-bl panel-corner-br\" style=\"background-image: url(&#39;/static/art/baldursgate.png&#39;); \" hx-get=\"/api/scene\" hx-trigger=\"load, sceneChange from:body\" hx-swap=\"outerHTML\"><div class=\"panel-header\">The Forgotten Ruins</div><div class=\"scene-overlay\">Ancient stone columns rise from the mist, their surfaces etched with mysterious runes that glow with a faint blue light.</div></div></div></div><div class=\"row g-2\"><!-- Character Panel - Always visible on mobile, smaller width --><div class=\"col-12 col-md-3 mb-2\" style=\"max-width: 300px;\"><div class=\"panel character-panel panel-corner-tl panel-corner-tr panel-corner-bl panel-corner-br\" hx-get=\"/api/character\" hx-trigger=\"load, characterUpdate from:body\" hx-swap=\"innerHTML\"><div class=\"panel-header\">Character</div><div class=\"character-image\" style=\"background-image: url(&#39;/static/art/tiefling.png&#39;); background-position-y: 0rem;\"></div><div class=\"character-stats\"><h5>Thorne Ironheart</h5><div>Level 5 Dwarf Paladin</div><div class=\"mt-3\">Health</div><div class=\"stat-bar\"><div class=\"stat-fill health-fill\" style=\"width: 75%;\"></div><div class=\"stat-value\">75/100</div></div><div>Mana</div><div class=\"stat-bar\"><div class=\"stat-fill mana-fill\" style=\"width: 60%;\"></div><div class=\"stat-value\">30/50</div></div><div>Stamina</div><div class=\"stat-bar\"><div class=\"stat-fill stamina-fill\" style=\"width: 90%;\"></div><div class=\"stat-value\">45/50</div></div></div></div></div><!-- Chat Panel - Full width on mobile --><div class=\"col-12 col-md mb-2\"><div class=\"panel chat-panel panel-corner-tl panel-corner-tr panel-corner-bl panel-corner-br\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if len(messages) > 0 {
+			templ_7745c5c3_Err = ChatInterface(messages).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<button type=\"button\" hx-post=\"/start\" class=\"main-btn\" style=\"margin: 20%;\" hx-swap=\"outerHTML\" hx-disabled-elt=\"this\" hx-indicator=\"#indicator\">Start your adventure <span id=\"indicator\" class=\"htmx-indicator\">Travelling to the sword coast...</span></button>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div></div><!-- Enemy Panel - Full width on mobile --><div class=\"col-12 col-md-3 mb-2\" style=\"max-width: 300px;\"><div class=\"panel enemy-panel panel-corner-tl panel-corner-tr panel-corner-bl panel-corner-br\" hx-get=\"/api/enemy\" hx-trigger=\"load, enemyUpdate from:body\" hx-swap=\"innerHTML\"><div class=\"panel-header\">Enemy</div><div class=\"enemy-image\" style=\"background-image: url(&#39;/static/art/skeleton.png&#39;); background-position-y: 0rem;\"></div><div class=\"enemy-stats\"><h5>Iron Guardian</h5><div>Level 6 Construct</div><div class=\"mt-3\">Health</div><div class=\"stat-bar\"><div class=\"stat-fill health-fill\" style=\"width: 90%;\"></div><div class=\"stat-value\">135/150</div></div><div>Energy</div><div class=\"stat-bar\"><div class=\"stat-fill mana-fill\" style=\"width: 100%;\"></div><div class=\"stat-value\">80/80</div></div></div></div></div></div></div><script>\n        // Auto-scroll chat to bottom\n        function scrollChatToBottom() {\n            const chatMessages = document.getElementById('chat-messages');\n            if (chatMessages) {\n                chatMessages.scrollTop = chatMessages.scrollHeight;\n            }\n        }\n\n        // Call on page load\n        document.addEventListener('DOMContentLoaded', scrollChatToBottom);\n\n        // Call when new messages are added\n        document.body.addEventListener('htmx:afterSwap', function (event) {\n            if (event.detail.target.id === 'chat-messages') {\n                scrollChatToBottom();\n            }\n        });\n    </script></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

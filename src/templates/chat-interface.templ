@@ -2,7 +2,7 @@ package templates
 
 import "github.com/hvossi92/gollama/src/templates/icons"
 
-templ ChatInterface(firstMessage templ.Component) {
+templ ChatInterface(messages []templ.Component) {
 	<div class="panel-header">Adventure Log</div>
 	<div
 		class="chat-messages"
@@ -11,7 +11,9 @@ templ ChatInterface(firstMessage templ.Component) {
 		hx-trigger="load, newMessage from:body"
 		hx-swap="innerHTML"
 	>
-		@firstMessage
+		for _, msg := range messages {
+			@msg
+		}
 	</div>
 	<div class="chat-input">
 		<form

@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hvossi92/gollama/src/helpers"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/tursodatabase/go-libsql"
 )
@@ -28,6 +29,12 @@ type Settings struct {
 	URL       string `db:"url"`
 	LLM       string `db:"llm"`
 	Embedding string `db:"embedding_model"`
+}
+
+type SaveGame struct {
+	ID      int    `db:"id"`
+	Name    string `db:"name"`
+	Created string `db:"created"`
 }
 
 // SetUpDatabaseService creates and initializes a new VectorDBService.
@@ -58,9 +65,14 @@ func SetUpDatabaseService(dbPath string, overwrite bool) (*DatabaseService, erro
 		return nil, fmt.Errorf("failed to ensure settings table exists: %w", err)
 	}
 
-	if err := databaseService.createChatMessageTable(); err != nil {
+	// if err := databaseService.createChatMessageTable(); err != nil {
+	// 	db.Close() // Close the connection if table creation fails
+	// 	return nil, fmt.Errorf("failed to ensure chat messages table exists: %w", err)
+	// }
+
+	if err := databaseService.createSaveGamesTables(); err != nil {
 		db.Close() // Close the connection if table creation fails
-		return nil, fmt.Errorf("failed to ensure chat messages table exists: %w", err)
+		return nil, fmt.Errorf("failed to ensure save games table exists: %w", err)
 	}
 
 	return databaseService, nil
@@ -77,6 +89,7 @@ func (s *DatabaseService) Close() error {
 func (s *DatabaseService) createDb(dbPath string) (*sqlx.DB, error) {
 	// Connect to embedded libSQL
 	db, err := sqlx.Open("libsql", "file:"+dbPath)
+	db.MustExec("PRAGMA foreign_keys = ON")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -132,13 +145,33 @@ func (s *DatabaseService) createSettingsTable() error {
 	return nil
 }
 
-func (s *DatabaseService) createChatMessageTable() error {
+// func (s *DatabaseService) createChatMessageTable() error {
+// 	// Create table if not exists
+// 	s.db.MustExec(`CREATE TABLE IF NOT EXISTS chat_messages (
+// 		id INTEGER PRIMARY KEY,
+// 		role TEXT,
+// 		content TEXT,
+// 		created TEXT DEFAULT CURRENT_TIMESTAMP
+// 	) STRICT`)
+
+// 	return nil
+// }
+
+func (s *DatabaseService) createSaveGamesTables() error {
 	// Create table if not exists
-	s.db.MustExec(`CREATE TABLE IF NOT EXISTS chat_messages (
-		id INTEGER PRIMARY KEY, 
-		role TEXT, 
-		content TEXT, 
+	s.db.MustExec(`CREATE TABLE IF NOT EXISTS save_games (
+		id INTEGER PRIMARY KEY,
+		name TEXT NOT NULL,
 		created TEXT DEFAULT CURRENT_TIMESTAMP
+	) STRICT`)
+
+	s.db.MustExec(`CREATE TABLE IF NOT EXISTS chat_messages (
+		id INTEGER PRIMARY KEY,
+		role TEXT,
+		content TEXT,
+		save_game_id INTEGER,
+		created TEXT DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY (save_game_id) REFERENCES save_games(id) ON DELETE CASCADE
 	) STRICT`)
 
 	return nil
@@ -234,4 +267,74 @@ func (s *DatabaseService) UpdateSettings(url string, llm string, embedding strin
 		return err
 	}
 	return nil
+}
+
+func (s *DatabaseService) SaveGame(name string, messages []ChatMessage) error {
+	result, err := s.db.Exec(
+		`INSERT INTO save_games (name) VALUES (?)`,
+		name,
+	)
+	if err != nil {
+		return err
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		return err
+	}
+	for _, msg := range messages {
+		_, err := s.db.Exec(
+			`INSERT INTO chat_messages (role, content, save_game_id) VALUES (?, ?, ?)`,
+			msg.Role, msg.Content, id,
+		)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *DatabaseService) GetSaveGames() ([]SaveGame, error) {
+	var saves []SaveGame
+	err := s.db.Select(&saves, `
+		SELECT id, name, created 
+		FROM save_games 
+		ORDER BY created DESC
+	`)
+	for i := range saves {
+		date, err := helpers.GetDayMonthYearFrom(saves[i].Created)
+		if err != nil {
+			return nil, err
+		}
+		saves[i].Created = date
+	}
+	return saves, err
+}
+
+func (s *DatabaseService) DeleteSaveGame(id int) error {
+	_, err := s.db.Exec(`DELETE FROM save_games WHERE id = ?`, id)
+	return err
+}
+
+func (s *DatabaseService) LoadSaveGame(id int) ([]ChatMessage, error) {
+	var save SaveGame
+	fmt.Println("LoadSaveGame")
+	err := s.db.Get(&save, `
+		SELECT id, name, created 
+		FROM save_games 
+		WHERE id = ?
+	`, id)
+	if err != nil {
+		return nil, err
+	}
+	var messages []ChatMessage
+	err = s.db.Select(&messages, `	
+		SELECT role, content
+		FROM chat_messages 
+		WHERE save_game_id = ?
+		ORDER BY created ASC
+	`, id)
+	if err != nil {
+		return nil, err
+	}
+	return messages, err
 }
