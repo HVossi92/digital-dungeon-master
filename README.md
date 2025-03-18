@@ -4,6 +4,7 @@ Digital Dungeon Master - DDM - is an Ai driven role playing game
 
 ## Todos:
 
+- add a "command overwrite", instead of frontend {} have a separate input fiel for instructions
 - Translate oracle tables into sql tables
 - Maybe use two chats with LLM. One with history that is the GM, and one for preparing questions and instructions (i.e. correctly phrasing dice rolls and oracle table lookups)
 - Get current token use / total tokens
