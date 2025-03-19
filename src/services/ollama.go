@@ -93,7 +93,7 @@ func SetUpOllamaService(url string, llm string, embedding string, staticFs embed
 func (s *OllamaService) AskLLM(question string, vectorService *DatabaseService) (string, error) {
 	userMsg := ChatMessage{
 		Role:    "user",
-		Content: question,
+		Content: "{Remember asking for skill check, but only for the player and only when necessary} " + question,
 	}
 	s.messages = append(s.messages, userMsg)
 
