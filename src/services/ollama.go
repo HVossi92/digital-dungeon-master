@@ -14,7 +14,6 @@ type OllamaService struct {
 	chatEndpoint      string
 	embeddingEndpoint string
 	llm               string
-	embeddingModel    string
 	systemPrompt      string
 	messages          []ChatMessage
 }
@@ -64,8 +63,7 @@ type Point struct {
 	Y int `json:"y"`
 }
 
-// SetUpVectorDBService creates and initializes a new VectorDBService.
-func SetUpOllamaService(url string, llm string, embedding string, staticFs embed.FS) *OllamaService {
+func SetUpOllamaService(url string, llm string, staticFs embed.FS) *OllamaService {
 	filename := "static/systemPrompt.txt"
 	content, err := fs.ReadFile(staticFs, filename)
 	if err != nil {
@@ -76,7 +74,6 @@ func SetUpOllamaService(url string, llm string, embedding string, staticFs embed
 		chatEndpoint:      url + "/api/chat",
 		embeddingEndpoint: url + "/api/embed",
 		llm:               llm,
-		embeddingModel:    embedding,
 		systemPrompt:      string(content),
 		messages:          make([]ChatMessage, 0),
 	}
@@ -90,7 +87,7 @@ func SetUpOllamaService(url string, llm string, embedding string, staticFs embed
 	return service
 }
 
-func (s *OllamaService) AskLLM(question string, vectorService *DatabaseService) (string, error) {
+func (s *OllamaService) AskLLM(question string) (string, error) {
 	userMsg := ChatMessage{
 		Role:    "user",
 		Content: "{Remember asking for skill check, but only for the player and only when necessary} " + question,
@@ -124,46 +121,6 @@ func (s *OllamaService) AskLLM(question string, vectorService *DatabaseService) 
 	return responseTxt, nil // Return response from LLM
 }
 
-func (s *OllamaService) GetVectorEmbedding(text string) ([]float32, error) {
-	request := EmbeddingRequest{
-		Model: s.embeddingModel,
-		Input: text,
-	}
-
-	fmt.Println("Generating vector embeddings", s.embeddingEndpoint)
-	ollamaResponse, err := utils.SendPostRequest[EmbeddingRequest, EmbeddingResponse](s.embeddingEndpoint, request)
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil, err
-	}
-	return ollamaResponse.Embeddings[0], nil // Return ollamaResponse.Message.Content
-}
-
-// func getEmbeddings() string{
-// questionEmbedding, err := s.GetVectorEmbedding(question)
-// if err != nil {
-// 	return "", fmt.Errorf("failed to embed question: %w", err)
-// }
-
-// similarItems, err := vectorService.FindSimilarVectors(questionEmbedding)
-// if err != nil {
-// 	return "", fmt.Errorf("failed to find similar vectors: %w", err)
-// }
-
-// context := ""
-// if len(similarItems) > 0 {
-// 	contextBuilder := strings.Builder{}
-// 	contextBuilder.WriteString("D&D Rule References:\n")
-// 	for _, item := range similarItems {
-// 		contextBuilder.WriteString(fmt.Sprintf("- %s\n", item.Text))
-// 	}
-// 	context = contextBuilder.String()
-// } else {
-// 	context = "No relevant context found in the database.\n"
-// }
-// }
-
-// GetMessages returns the current message history
 func (s *OllamaService) GetMessages() []ChatMessage {
 	return s.messages
 }

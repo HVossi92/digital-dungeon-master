@@ -28,3 +28,4 @@ tmp/
 tmp/*
 *.log
 *.DS_Store
+database.db

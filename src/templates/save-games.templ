@@ -2,10 +2,10 @@ package templates
 
 import (
     "fmt"
-    "github.com/hvossi92/gollama/src/services"
+	"github.com/hvossi92/gollama/src/db"
 )
 
-templ SaveGames(saves []services.SaveGame) {
+templ SaveGames(saves []db.SaveGame) {
     <!DOCTYPE html>
     <html lang="en">
         @head()
@@ -35,7 +35,7 @@ templ SaveGames(saves []services.SaveGame) {
                                     for _, save := range saves {
                                         <tr>
                                             <td>{save.Name}</td>
-                                            <td>{save.Created}</td>
+                                            <td>{save.Created.String}</td>
                                             <td>
                                                 <button class="btn btn-primary btn-sm" 
                                                     hx-get={fmt.Sprintf("/save-game/%d", save.ID)}

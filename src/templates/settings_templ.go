@@ -33,15 +33,7 @@ func Settings() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<body><div class=\"container mt-5\"><div class=\"row justify-content-center\"><div class=\"col-md-8\"><div class=\"panel panel-corner-tl panel-corner-tr panel-corner-bl panel-corner-br\"><div class=\"panel-header\">Settings</div><form method=\"post\" action=\"/settings\" hx-target=\"#settings-content\" hx-swap=\"outerHTML\"><div class=\"mb-3\"><label for=\"ollamaModelName\" class=\"form-label\">Ollama Model Name</label> <input type=\"text\" class=\"form-control\" id=\"ollamaModelName\" name=\"llm\"></div><div class=\"mb-3\"><label for=\"ollamaUrl\" class=\"form-label\">Ollama URL</label> <input type=\"text\" class=\"form-control\" id=\"ollamaUrl\" name=\"url\"></div><button type=\"submit\" class=\"btn btn-primary\">Save Settings</button></form>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = VectorUploadArea().Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<button hx-get=\"/\" class=\"btn btn-secondary mt-3\" hx-target=\"body\" hx-push-url=\"true\">Close</button></div></div></div></div></body>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<body><div class=\"container mt-5\"><div class=\"row justify-content-center\"><div class=\"col-md-8\"><div class=\"panel panel-corner-tl panel-corner-tr panel-corner-bl panel-corner-br\"><div class=\"panel-header\">Settings</div><form method=\"post\" action=\"/settings\" hx-target=\"#settings-content\" hx-swap=\"outerHTML\"><div class=\"mb-3\"><label for=\"ollamaModelName\" class=\"form-label\">Ollama Model Name</label> <input type=\"text\" class=\"form-control\" id=\"ollamaModelName\" name=\"llm\"></div><div class=\"mb-3\"><label for=\"ollamaUrl\" class=\"form-label\">Ollama URL</label> <input type=\"text\" class=\"form-control\" id=\"ollamaUrl\" name=\"url\"></div><button type=\"submit\" class=\"btn btn-primary\">Save Settings</button></form><button hx-get=\"/\" class=\"btn btn-secondary mt-3\" hx-target=\"body\" hx-push-url=\"true\">Close</button></div></div></div></div></body>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

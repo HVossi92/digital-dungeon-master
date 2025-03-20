@@ -1,95 +1,25 @@
 package services
 
 import (
+	"database/sql"
 	"errors"
-	"fmt"
 	"log"
 	"os"
-	"strconv"
-	"strings"
 
-	"github.com/hvossi92/gollama/src/helpers"
-	"github.com/jmoiron/sqlx"
-	_ "github.com/tursodatabase/go-libsql"
+	_ "github.com/mattn/go-sqlite3"
 )
 
-// DatabaseService represents the service responsible for the vector database.
-type DatabaseService struct {
-	db *sqlx.DB
-}
-
-type VectorItem struct {
-	Id        int     `db:"id"`
-	Text      string  `db:"text"`
-	Embedding []byte  `db:"vector_extract(embedding)"`
-	Distance  float32 `db:"distance"`
-}
-
-type Settings struct {
-	URL       string `db:"url"`
-	LLM       string `db:"llm"`
-	Embedding string `db:"embedding_model"`
-}
-
-type SaveGame struct {
-	ID      int    `db:"id"`
-	Name    string `db:"name"`
-	Created string `db:"created"`
-}
-
-// SetUpDatabaseService creates and initializes a new VectorDBService.
-func SetUpDatabaseService(dbPath string, overwrite bool) (*DatabaseService, error) {
+func CreateDb(dbPath string, overwrite bool) *sql.DB {
 	if overwrite {
 		log.Println("Overwriting existing database (if it exists)")
 		if err := os.Remove(dbPath); err != nil && !errors.Is(err, os.ErrNotExist) {
-			return nil, fmt.Errorf("failed to remove existing database: %w", err)
+			log.Fatal(err)
 		}
 	}
 
-	// Create VectorService instance first
-	databaseService := &DatabaseService{db: nil}
-	db, err := databaseService.createDb(dbPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create database: %w", err)
-	}
-	databaseService.db = db
-
-	// Then call ensureVectorTableExists on the instance
-	if err := databaseService.createRulesVectorTable(); err != nil {
-		db.Close() // Close the connection if table creation fails
-		return nil, fmt.Errorf("failed to ensure vector table exists: %w", err)
-	}
-
-	if err := databaseService.createSettingsTable(); err != nil {
-		db.Close() // Close the connection if table creation fails
-		return nil, fmt.Errorf("failed to ensure settings table exists: %w", err)
-	}
-
-	// if err := databaseService.createChatMessageTable(); err != nil {
-	// 	db.Close() // Close the connection if table creation fails
-	// 	return nil, fmt.Errorf("failed to ensure chat messages table exists: %w", err)
-	// }
-
-	if err := databaseService.createSaveGamesTables(); err != nil {
-		db.Close() // Close the connection if table creation fails
-		return nil, fmt.Errorf("failed to ensure save games table exists: %w", err)
-	}
-
-	return databaseService, nil
-}
-
-// Close closes the database connection.  Good practice to add a Close method.
-func (s *DatabaseService) Close() error {
-	if s.db != nil {
-		return s.db.Close()
-	}
-	return nil
-}
-
-func (s *DatabaseService) createDb(dbPath string) (*sqlx.DB, error) {
 	// Connect to embedded libSQL
-	db, err := sqlx.Open("libsql", "file:"+dbPath)
-	db.MustExec("PRAGMA foreign_keys = ON")
+	connStr := "./database.db?_foreign_keys=on&_journal=WAL&_synchronous=NORMAL&_busy_timeout=5000&_cache_size=-64000"
+	db, err := sql.Open("sqlite3", connStr)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -100,50 +30,47 @@ func (s *DatabaseService) createDb(dbPath string) (*sqlx.DB, error) {
 		log.Fatal("Connection failed:", err)
 	}
 
-	log.Println("Connected to local libSQL database!")
-	return db, nil
+	log.Println("Connected to local sqlite database")
+	return db
 }
 
-// EnsureVectorTableExists checks if the vector table exists and creates it if not.
-func (s *DatabaseService) createRulesVectorTable() error {
-	_, err := s.db.Exec(fmt.Sprintf("CREATE TABLE IF NOT EXISTS rules (id INTEGER PRIMARY KEY, text TEXT, embedding F32_BLOB(%d))", 768))
-	if err != nil {
-		return err
+func CloseDb(db *sql.DB) error {
+	if db != nil {
+		return db.Close()
 	}
-
 	return nil
 }
 
-func (s *DatabaseService) createSettingsTable() error {
-	// Create table if not exists
-	s.db.MustExec(`CREATE TABLE IF NOT EXISTS settings (
-		id INTEGER PRIMARY KEY, 
-		url TEXT, 
-		llm TEXT, 
-		embedding_model TEXT
-	) STRICT`)
+// func (s *DatabaseService) createSettingsTable() error {
+// 	// Create table if not exists
+// 	s.db.MustExec(`CREATE TABLE IF NOT EXISTS settings (
+// 		id INTEGER PRIMARY KEY,
+// 		url TEXT,
+// 		llm TEXT,
+// 		embedding_model TEXT
+// 	) STRICT`)
 
-	// Check if table is empty
-	var count int
-	err := s.db.Get(&count, "SELECT COUNT(*) FROM settings")
-	if err != nil {
-		return fmt.Errorf("failed to check settings table: %w", err)
-	}
+// 	// Check if table is empty
+// 	var count int
+// 	err := s.db.Get(&count, "SELECT COUNT(*) FROM settings")
+// 	if err != nil {
+// 		return fmt.Errorf("failed to check settings table: %w", err)
+// 	}
 
-	// Insert default values only if table is empty
-	if count == 0 {
-		_, err = s.db.Exec(`INSERT INTO settings (url, llm, embedding_model) 
-			VALUES (?, ?, ?)`,
-			"http://192.168.178.105:11434",
-			"gemma3:4b",
-			"nomic-embed-text:latest")
-		if err != nil {
-			return fmt.Errorf("failed to insert default settings: %w", err)
-		}
-	}
+// 	// Insert default values only if table is empty
+// 	if count == 0 {
+// 		_, err = s.db.Exec(`INSERT INTO settings (url, llm, embedding_model)
+// 			VALUES (?, ?, ?)`,
+// 			"http://192.168.178.105:11434",
+// 			"gemma3:4b",
+// 			"nomic-embed-text:latest")
+// 		if err != nil {
+// 			return fmt.Errorf("failed to insert default settings: %w", err)
+// 		}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 // func (s *DatabaseService) createChatMessageTable() error {
 // 	// Create table if not exists
@@ -157,184 +84,109 @@ func (s *DatabaseService) createSettingsTable() error {
 // 	return nil
 // }
 
-func (s *DatabaseService) createSaveGamesTables() error {
-	// Create table if not exists
-	s.db.MustExec(`CREATE TABLE IF NOT EXISTS save_games (
-		id INTEGER PRIMARY KEY,
-		name TEXT NOT NULL,
-		created TEXT DEFAULT CURRENT_TIMESTAMP
-	) STRICT`)
+// func (s *DatabaseService) createSaveGamesTables() error {
+// 	// Create table if not exists
+// 	s.db.MustExec(`CREATE TABLE IF NOT EXISTS save_games (
+// 		id INTEGER PRIMARY KEY,
+// 		name TEXT NOT NULL,
+// 		created TEXT DEFAULT CURRENT_TIMESTAMP
+// 	) STRICT`)
 
-	s.db.MustExec(`CREATE TABLE IF NOT EXISTS chat_messages (
-		id INTEGER PRIMARY KEY,
-		role TEXT,
-		content TEXT,
-		save_game_id INTEGER,
-		created TEXT DEFAULT CURRENT_TIMESTAMP,
-		FOREIGN KEY (save_game_id) REFERENCES save_games(id) ON DELETE CASCADE
-	) STRICT`)
+// 	s.db.MustExec(`CREATE TABLE IF NOT EXISTS chat_messages (
+// 		id INTEGER PRIMARY KEY,
+// 		role TEXT,
+// 		content TEXT,
+// 		save_game_id INTEGER,
+// 		created TEXT DEFAULT CURRENT_TIMESTAMP,
+// 		FOREIGN KEY (save_game_id) REFERENCES save_games(id) ON DELETE CASCADE
+// 	) STRICT`)
 
-	return nil
-}
+// 	return nil
+// }
 
-// InsertChunkAndEmbedding saves a text chunk and its embedding to the SQLite vector database.
-func (s *DatabaseService) InsertChunkAndEmbedding(chunk string, embedding []float32) error {
-	var sb strings.Builder
-	sb.WriteByte('[')
-	for i, v := range embedding {
-		if i > 0 {
-			sb.WriteString(", ")
-		}
-		sb.WriteString(strconv.FormatFloat(float64(v), 'f', 6, 32))
-	}
-	sb.WriteByte(']')
-	vectorStr := sb.String()
+// func (s *DatabaseService) GetSettings() (*Settings, error) {
+// 	var settings Settings
+// 	err := s.db.Get(&settings, "SELECT url, llm, embedding_model FROM settings")
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &settings, nil
+// }
 
-	_, err := s.db.Exec(
-		`INSERT INTO rules (text, embedding) 
-         VALUES (?, vector32(?))`,
-		chunk,
-		vectorStr,
-	)
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// func (s *DatabaseService) UpdateSettings(url string, llm string, embedding string) error {
+// 	_, err := s.db.Exec("UPDATE settings SET url=?, llm=?, embedding_model=? WHERE id=1", url, llm, embedding)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
-// ReadAllVectors reads all data from the vector DB table.
-func (s *DatabaseService) ReadAllVectors() (string, error) {
-	var vectorItems []VectorItem
+// func (s *DatabaseService) SaveGame(name string, messages []ChatMessage) error {
+// 	result, err := s.db.Exec(
+// 		`INSERT INTO save_games (name) VALUES (?)`,
+// 		name,
+// 	)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	id, err := result.LastInsertId()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	for _, msg := range messages {
+// 		_, err := s.db.Exec(
+// 			`INSERT INTO chat_messages (role, content, save_game_id) VALUES (?, ?, ?)`,
+// 			msg.Role, msg.Content, id,
+// 		)
+// 		if err != nil {
+// 			return err
+// 		}
+// 	}
+// 	return nil
+// }
 
-	err := s.db.Select(&vectorItems, `
-		SELECT id, text, vector_extract(embedding) 
-		FROM rules
-		ORDER BY id ASC`)
-	if err != nil {
-		return "", fmt.Errorf("query failed: %w", err)
-	}
+// func (s *DatabaseService) GetSaveGames() ([]SaveGame, error) {
+// 	var saves []SaveGame
+// 	err := s.db.Select(&saves, `
+// 		SELECT id, name, created
+// 		FROM save_games
+// 		ORDER BY created DESC
+// 	`)
+// 	for i := range saves {
+// 		date, err := helpers.GetDayMonthYearFrom(saves[i].Created)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		saves[i].Created = date
+// 	}
+// 	return saves, err
+// }
 
-	var builder strings.Builder
-	for _, vec := range vectorItems {
-		display := vec.Text
-		if len(vec.Text) > 40 {
-			display = vec.Text[:40-3] + "..."
-		}
-		builder.WriteString(fmt.Sprintf("%-4d - %-40s | ", vec.Id, display))
-	}
-	return builder.String(), nil
-}
+// func (s *DatabaseService) DeleteSaveGame(id int) error {
+// 	_, err := s.db.Exec(`DELETE FROM save_games WHERE id = ?`, id)
+// 	return err
+// }
 
-// FindSimilarVectors queries the vector DB for vectors similar to the given embedding.
-func (s *DatabaseService) FindSimilarVectors(queryEmbedding []float32) ([]VectorItem, error) {
-	var sb strings.Builder
-	sb.WriteByte('[')
-	for i, v := range queryEmbedding {
-		if i > 0 {
-			sb.WriteString(", ")
-		}
-		sb.WriteString(strconv.FormatFloat(float64(v), 'f', 6, 32))
-	}
-	sb.WriteByte(']')
-	vectorStr := sb.String()
-
-	var similarItems []VectorItem
-	// TODO: Might need a distance field in the struct, or alternatively do not return the distance and only use it for ordering (since atm I only use it inside the db)
-	err := s.db.Select(&similarItems,
-		`SELECT text, vector_extract(embedding), vector_distance_cos(embedding, vector32(?)) AS distance
-		FROM rules
-		ORDER BY vector_distance_cos(embedding, vector32(?))
-		ASC LIMIT 32;`, vectorStr, vectorStr)
-	if err != nil {
-		return nil, err
-	}
-
-	return similarItems, nil
-}
-
-func (s *DatabaseService) GetSettings() (*Settings, error) {
-	var settings Settings
-	err := s.db.Get(&settings, "SELECT url, llm, embedding_model FROM settings")
-	if err != nil {
-		return nil, err
-	}
-	return &settings, nil
-}
-
-func (s *DatabaseService) UpdateSettings(url string, llm string, embedding string) error {
-	_, err := s.db.Exec("UPDATE settings SET url=?, llm=?, embedding_model=? WHERE id=1", url, llm, embedding)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *DatabaseService) SaveGame(name string, messages []ChatMessage) error {
-	result, err := s.db.Exec(
-		`INSERT INTO save_games (name) VALUES (?)`,
-		name,
-	)
-	if err != nil {
-		return err
-	}
-	id, err := result.LastInsertId()
-	if err != nil {
-		return err
-	}
-	for _, msg := range messages {
-		_, err := s.db.Exec(
-			`INSERT INTO chat_messages (role, content, save_game_id) VALUES (?, ?, ?)`,
-			msg.Role, msg.Content, id,
-		)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (s *DatabaseService) GetSaveGames() ([]SaveGame, error) {
-	var saves []SaveGame
-	err := s.db.Select(&saves, `
-		SELECT id, name, created 
-		FROM save_games 
-		ORDER BY created DESC
-	`)
-	for i := range saves {
-		date, err := helpers.GetDayMonthYearFrom(saves[i].Created)
-		if err != nil {
-			return nil, err
-		}
-		saves[i].Created = date
-	}
-	return saves, err
-}
-
-func (s *DatabaseService) DeleteSaveGame(id int) error {
-	_, err := s.db.Exec(`DELETE FROM save_games WHERE id = ?`, id)
-	return err
-}
-
-func (s *DatabaseService) LoadSaveGame(id int) ([]ChatMessage, error) {
-	var save SaveGame
-	fmt.Println("LoadSaveGame")
-	err := s.db.Get(&save, `
-		SELECT id, name, created 
-		FROM save_games 
-		WHERE id = ?
-	`, id)
-	if err != nil {
-		return nil, err
-	}
-	var messages []ChatMessage
-	err = s.db.Select(&messages, `	
-		SELECT role, content
-		FROM chat_messages 
-		WHERE save_game_id = ?
-		ORDER BY created ASC
-	`, id)
-	if err != nil {
-		return nil, err
-	}
-	return messages, err
-}
+// func (s *DatabaseService) LoadSaveGame(id int) ([]ChatMessage, error) {
+// 	var save SaveGame
+// 	fmt.Println("LoadSaveGame")
+// 	err := s.db.Get(&save, `
+// 		SELECT id, name, created
+// 		FROM save_games
+// 		WHERE id = ?
+// 	`, id)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	var messages []ChatMessage
+// 	err = s.db.Select(&messages, `
+// 		SELECT role, content
+// 		FROM chat_messages
+// 		WHERE save_game_id = ?
+// 		ORDER BY created ASC
+// 	`, id)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return messages, err
+// }
