@@ -23,6 +23,7 @@ templ ChatInterface(messages []templ.Component) {
 			hx-disabled-elt="#send-btn"
 			hx-target="#chat-messages"
 			hx-swap="beforeend"
+			hx-on::after-request="if (event.detail.successful) this.reset()"
 		>
 			<div class="input-group">
 				<input
