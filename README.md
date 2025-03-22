@@ -4,8 +4,6 @@ Digital Dungeon Master - DDM - is an Ai driven role playing game
 
 ## Todos:
 
-- Remove vector stuff
-- Replace sqlx with sqlc and use cursor to refactor
 - Clear input form after send
 - add a "command overwrite", instead of frontend {} have a separate input fiel for instructions
 - Translate oracle tables into sql tables

@@ -39,7 +39,7 @@ func NewServer() (*Server, error) {
 	}
 
 	database := services.CreateDb("database.db", false)
-	defer services.CloseDb(database)
+	// defer services.CloseDb(database)
 
 	ctx := context.Background()
 	// create tables

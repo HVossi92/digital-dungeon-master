@@ -29,7 +29,7 @@ templ Index(messages []templ.Component) {
 							hx-trigger="load, sceneChange from:body"
 							hx-swap="outerHTML"
 						>
-							<div class="panel-header">The Forgotten Ruins</div>
+							<div class="panel-header">Current Location</div>
 							<div class="scene-overlay">
 								Ancient stone columns rise from the mist, their surfaces etched with mysterious runes that glow
 								with a faint blue light.
@@ -46,30 +46,11 @@ templ Index(messages []templ.Component) {
 							hx-trigger="load, characterUpdate from:body"
 							hx-swap="innerHTML"
 						>
-							<div class="panel-header">Character</div>
+							<div class="panel-header">Character - LazerPope	</div>
 							<div
 								class="character-image"
 								style="background-image: url('/static/art/tiefling.png'); background-position-y: 0rem;"
 							></div>
-							<div class="character-stats">
-								<h5>Thorne Ironheart</h5>
-								<div>Level 5 Dwarf Paladin</div>
-								<div class="mt-3">Health</div>
-								<div class="stat-bar">
-									<div class="stat-fill health-fill" style="width: 75%;"></div>
-									<div class="stat-value">75/100</div>
-								</div>
-								<div>Mana</div>
-								<div class="stat-bar">
-									<div class="stat-fill mana-fill" style="width: 60%;"></div>
-									<div class="stat-value">30/50</div>
-								</div>
-								<div>Stamina</div>
-								<div class="stat-bar">
-									<div class="stat-fill stamina-fill" style="width: 90%;"></div>
-									<div class="stat-value">45/50</div>
-								</div>
-							</div>
 						</div>
 					</div>
 					<!-- Chat Panel - Full width on mobile -->
@@ -101,22 +82,8 @@ templ Index(messages []templ.Component) {
 							hx-trigger="load, enemyUpdate from:body"
 							hx-swap="innerHTML"
 						>
-							<div class="panel-header">Enemy</div>
+							<div class="panel-header">NPC - Scary skeleton</div>
 							<div class="enemy-image" style="background-image: url('/static/art/skeleton.png'); background-position-y: 0rem;"></div>
-							<div class="enemy-stats">
-								<h5>Iron Guardian</h5>
-								<div>Level 6 Construct</div>
-								<div class="mt-3">Health</div>
-								<div class="stat-bar">
-									<div class="stat-fill health-fill" style="width: 90%;"></div>
-									<div class="stat-value">135/150</div>
-								</div>
-								<div>Energy</div>
-								<div class="stat-bar">
-									<div class="stat-fill mana-fill" style="width: 100%;"></div>
-									<div class="stat-value">80/80</div>
-								</div>
-							</div>
 						</div>
 					</div>
 				</div>
