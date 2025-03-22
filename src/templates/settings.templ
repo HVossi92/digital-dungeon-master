@@ -1,25 +1,31 @@
 package templates
 
-templ Settings() {
+import "github.com/hvossi92/gollama/src/db"
+import "github.com/hvossi92/gollama/src/templates/buttons"
+
+templ Settings(settings db.Setting) {
 	@head()
 	<body>
 		<div class="container mt-5">
 			<div class="row justify-content-center">
 				<div class="col-md-8">
 					<div class="panel panel-corner-tl panel-corner-tr panel-corner-bl panel-corner-br">
-						<div class="panel-header">Settings</div>
-						<form method="post" action="/settings" hx-target="#settings-content" hx-swap="outerHTML">
+						<div class="panel-header">
+							@buttons.BackButton()
+							Settings
+						</div>
+						<form hx-put="/settings" hx-target="body" hx-swap="outerHTML" style="padding: 1rem;">
 							<div class="mb-3">
 								<label for="ollamaModelName" class="form-label">Ollama Model Name</label>
-								<input type="text" class="form-control" id="ollamaModelName" name="llm"/>
+								<input value={ settings.Llm } type="text" class="form-control" id="ollamaModelName" name="llm"/>
 							</div>
 							<div class="mb-3">
 								<label for="ollamaUrl" class="form-label">Ollama URL</label>
-								<input type="text" class="form-control" id="ollamaUrl" name="url"/>
+								<input value={ settings.Url } type="text" class="form-control" id="ollamaUrl" name="url"/>
 							</div>
 							<button type="submit" class="btn btn-primary">Save Settings</button>
+							<a href="/" class="btn btn-secondary" hx-get="/" hx-target="body" hx-push-url="true">Close</a>
 						</form>
-						<button hx-get="/" class="btn btn-secondary mt-3" hx-target="body" hx-push-url="true">Close</button>
 					</div>
 				</div>
 			</div>

@@ -8,7 +8,10 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func Settings() templ.Component {
+import "github.com/hvossi92/gollama/src/db"
+import "github.com/hvossi92/gollama/src/templates/buttons"
+
+func Settings(settings db.Setting) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -33,7 +36,41 @@ func Settings() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<body><div class=\"container mt-5\"><div class=\"row justify-content-center\"><div class=\"col-md-8\"><div class=\"panel panel-corner-tl panel-corner-tr panel-corner-bl panel-corner-br\"><div class=\"panel-header\">Settings</div><form method=\"post\" action=\"/settings\" hx-target=\"#settings-content\" hx-swap=\"outerHTML\"><div class=\"mb-3\"><label for=\"ollamaModelName\" class=\"form-label\">Ollama Model Name</label> <input type=\"text\" class=\"form-control\" id=\"ollamaModelName\" name=\"llm\"></div><div class=\"mb-3\"><label for=\"ollamaUrl\" class=\"form-label\">Ollama URL</label> <input type=\"text\" class=\"form-control\" id=\"ollamaUrl\" name=\"url\"></div><button type=\"submit\" class=\"btn btn-primary\">Save Settings</button></form><button hx-get=\"/\" class=\"btn btn-secondary mt-3\" hx-target=\"body\" hx-push-url=\"true\">Close</button></div></div></div></div></body>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<body><div class=\"container mt-5\"><div class=\"row justify-content-center\"><div class=\"col-md-8\"><div class=\"panel panel-corner-tl panel-corner-tr panel-corner-bl panel-corner-br\"><div class=\"panel-header\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = buttons.BackButton().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "Settings</div><form hx-put=\"/settings\" hx-target=\"body\" hx-swap=\"outerHTML\" style=\"padding: 1rem;\"><div class=\"mb-3\"><label for=\"ollamaModelName\" class=\"form-label\">Ollama Model Name</label> <input value=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var2 string
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(settings.Llm)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/settings.templ`, Line: 20, Col: 35}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" type=\"text\" class=\"form-control\" id=\"ollamaModelName\" name=\"llm\"></div><div class=\"mb-3\"><label for=\"ollamaUrl\" class=\"form-label\">Ollama URL</label> <input value=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(settings.Url)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/settings.templ`, Line: 24, Col: 35}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" type=\"text\" class=\"form-control\" id=\"ollamaUrl\" name=\"url\"></div><button type=\"submit\" class=\"btn btn-primary\">Save Settings</button> <a href=\"/\" class=\"btn btn-secondary\" hx-get=\"/\" hx-target=\"body\" hx-push-url=\"true\">Close</a></form></div></div></div></div></body>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

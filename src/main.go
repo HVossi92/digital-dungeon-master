@@ -38,7 +38,7 @@ func NewServer() (*Server, error) {
 		return nil, fmt.Errorf("failed to create sub filesystem: %w", err)
 	}
 
-	database := services.CreateDb("database.db", false)
+	database := services.CreateDb("./db/database.db", false)
 	// defer services.CloseDb(database)
 
 	ctx := context.Background()
@@ -47,14 +47,17 @@ func NewServer() (*Server, error) {
 		log.Fatal(err)
 	}
 	queries := db.New(database)
-	err = queries.InsertSettings(ctx, db.InsertSettingsParams{Url: "http://localhost:11434", Llm: "gemma3:4b"})
-	if err != nil {
-		log.Fatal(err)
-	}
 	settings, err := queries.GetSettings(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get settings: %w", err)
+		err = queries.InsertSettings(ctx, db.InsertSettingsParams{Url: "http://localhost:11434", Llm: "gemma3:4b"})
+		if err != nil {
+			panic(err)
+		}
 	}
+	// settings, err := queries.GetSettings(ctx)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to get settings: %w", err)
+	// }
 	ollamaService := services.SetUpOllamaService(settings.Url, settings.Llm, staticFs)
 
 	return &Server{
@@ -95,11 +98,10 @@ func main() {
 // RegisterRoutes sets up all the HTTP endpoints for the server
 func (s *Server) RegisterRoutes() {
 	http.HandleFunc("/", s.fetchIndexPage)
-	http.HandleFunc("/settings", s.fetchSettingsPage)
-	http.HandleFunc("POST /settings", s.updateSettings)
+	http.HandleFunc("GET /settings", s.fetchSettingsPage)
+	http.HandleFunc("PUT /settings", s.updateSettings)
 	http.HandleFunc("POST /start", s.startAdventure)
 	http.HandleFunc("POST /chat", s.fetchAiResponse)
-	http.HandleFunc("PUT /settings", s.UpdateSettings)
 	http.HandleFunc("GET /die", s.getDie)
 	http.HandleFunc("/save-games", s.fetchSaveGamesPage)
 	http.HandleFunc("GET /save-game/{id}", s.loadSaveGame)
@@ -123,19 +125,13 @@ func (s *Server) fetchIndexPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) fetchSettingsPage(w http.ResponseWriter, r *http.Request) {
-	templates.Settings().Render(r.Context(), w)
-	if err := templates.Settings().Render(r.Context(), w); err != nil {
+	settings, err := s.queries.GetSettings(s.ctx)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-}
-
-func (s *Server) updateSettings(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Updating settings")
-	settings := db.Setting{
-		Url: r.FormValue("url"),
-		Llm: r.FormValue("llm"),
+	if err := templates.Settings(settings).Render(r.Context(), w); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	fmt.Println(settings)
 }
 
 func (s *Server) startAdventure(w http.ResponseWriter, r *http.Request) {
@@ -175,22 +171,16 @@ func (s *Server) fetchAiResponse(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) UpdateSettings(w http.ResponseWriter, r *http.Request) {
-	updateDto := db.UpdateSettingsParams{
+func (s *Server) updateSettings(w http.ResponseWriter, r *http.Request) {
+	settings := db.UpdateSettingsParams{
 		Url: r.FormValue("url"),
 		Llm: r.FormValue("llm"),
 	}
-	err := s.queries.UpdateSettings(s.ctx, updateDto)
+	err := s.queries.UpdateSettings(s.ctx, settings)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		http.Error(w, "Invalid die value", http.StatusBadRequest)
 	}
-
-	_, err = w.Write([]byte("Settings updated"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	s.fetchSettingsPage(w, r)
 }
 
 func (s *Server) getDie(w http.ResponseWriter, r *http.Request) {
