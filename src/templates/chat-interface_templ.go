@@ -31,7 +31,7 @@ func ChatInterface(messages []templ.Component) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"panel-header\">Adventure Log</div><div class=\"chat-messages\" id=\"chat-messages\" hx-get=\"/api/messages\" hx-trigger=\"load, newMessage from:body\" hx-swap=\"innerHTML\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"panel-header\">Adventure Log</div><div class=\"chat-messages\" id=\"chat-messages\" hx-trigger=\"load, newMessage from:body\" hx-swap=\"innerHTML\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -41,7 +41,7 @@ func ChatInterface(messages []templ.Component) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><div class=\"chat-input\"><form hx-post=\"/chat\" hx-indicator=\"#loading-spinner\" hx-trigger=\"submit\" hx-disabled-elt=\"#send-btn\" hx-target=\"#chat-messages\" hx-swap=\"beforeend\"><div class=\"input-group\"><input type=\"text\" name=\"message\" class=\"form-control bg-dark text-light border-secondary\" placeholder=\"What would you like to do?\" aria-label=\"Message\"> <button id=\"send-btn\" class=\"btn btn-outline-secondary\" type=\"submit\" style=\"color: var(--accent-gold); border-color: var(--accent-gold);\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><div class=\"chat-input\"><form hx-post=\"/chat\" hx-indicator=\"#loading-spinner\" hx-trigger=\"submit\" hx-disabled-elt=\"#send-btn\" hx-target=\"#chat-messages\" hx-swap=\"beforeend\" hx-on::after-request=\"if (event.detail.successful) this.reset()\"><div class=\"input-group\"><input type=\"text\" name=\"message\" class=\"form-control bg-dark text-light border-secondary\" placeholder=\"What would you like to do?\" aria-label=\"Message\"> <button id=\"send-btn\" class=\"btn btn-outline-secondary\" type=\"submit\" style=\"color: var(--accent-gold); border-color: var(--accent-gold);\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
