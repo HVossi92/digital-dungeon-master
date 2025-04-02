@@ -27,6 +27,6 @@ go.work.sum
 tmp/
 tmp/*
 *.log
-*.DS_Store
+.DS_Store
 database.db
 database.*
